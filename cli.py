@@ -83,7 +83,7 @@ def main():
 
     cli.append(Node("exit", "Exit from CLI", action=act_cli_exit))
 
-    cli.start_cli()
+    cli.start()
 
 
 if __name__ == "__main__":

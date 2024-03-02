@@ -25,9 +25,9 @@ class CLI:
             return self.prompt_cb()
         return ">"
 
-    def longest_match(self, prefix: list[str]) -> Node:
+    def longest_match(self, path: list[str]) -> Node:
         node = self.root
-        for text in prefix:
+        for text in path:
             next_node = node.match_leaf(text)
             if not next_node:
                 break
@@ -50,8 +50,8 @@ class CLI:
 
     def complete(self, text: str, state: int):
         linebuffer = readline.get_line_buffer()
-        prefix = re.split(r"\s+", linebuffer)
-        node = self.longest_match(prefix)
+        path = re.split(r"\s+", linebuffer)
+        node = self.longest_match(path)
         candidates = node.compelte(linebuffer, text)
 
         if text == "":
@@ -94,7 +94,7 @@ class CLI:
 
         node.action(args)
 
-    def start_cli(self):
+    def start(self):
         readline.set_completer_delims(" ")
         readline.set_completer(self.complete)
         readline.parse_and_bind("tab: complete")
