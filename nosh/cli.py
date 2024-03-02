@@ -1,23 +1,24 @@
 from __future__ import annotations
-import typing
 
-from .node import *
+from typing import Callable, TextIO
 
-import io
 import re
 import sys
 import readline
 
+from nosh.node import Node, StaticNode
+
 
 class CLI:
-    def __init__(self, prompt_cb: Callable[[], str] | None = None,
-                 file: typing.TextIO = sys.stdout):
-        self.root = Node("__root__", "Root Node")
+    def __init__(
+        self, prompt_cb: Callable[[], str] | None = None, file: TextIO = sys.stdout
+    ):
+        self.root = StaticNode("__root__", "Root Node")
         self.prompt_cb = prompt_cb
         self.file = file
 
     def print(self, msg, **kwargs):
-        print(msg, file = self.file, **kwargs)
+        print(msg, file=self.file, **kwargs)
 
     @property
     def prompt(self) -> str:
@@ -34,7 +35,7 @@ class CLI:
             node = next_node
         return node
 
-    def find(self, path: list[str|Node]) -> Node:
+    def find(self, path: list[str | Node]) -> Node:
         node = self.root
         for p in path:
             next_node = node.find_leaf(p)
@@ -44,7 +45,7 @@ class CLI:
         if node == self.root:
             raise ValueError(f"path {path} does not exist")
         return node
-        
+
     def append(self, *args: Node):
         self.root.append(*args)
 
@@ -52,7 +53,7 @@ class CLI:
         linebuffer = readline.get_line_buffer()
         path = re.split(r"\s+", linebuffer)
         node = self.longest_match(path)
-        candidates = node.compelte(linebuffer, text)
+        candidates = node.complete(linebuffer, text)
 
         if text == "":
             self.print("\n")
@@ -71,7 +72,7 @@ class CLI:
 
         compeletion_candidates = list(
             filter(lambda x: not re.match(r"<.*>", x[0]), candidates)
-        ) # omit indicators of <INDICATOR> from candidates
+        )  # omit indicators of <INDICATOR> from candidates
 
         if state < len(compeletion_candidates):
             return compeletion_candidates[state][0] + " "
