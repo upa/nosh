@@ -1,17 +1,18 @@
-
 from __future__ import annotations
 from typing import Callable
 
 import ifaddr
 
-class Node():
+
+class Node:
     """Basic Node representing cli node"""
 
-    def __init__(self, text: str, helpstr: str,
-                 action: Callable[[list[str]]] | None = None):
+    def __init__(
+        self, text: str, helpstr: str, action: Callable[[list[str]]] | None = None
+    ):
         self.text = text
         self.helpstr = helpstr
-        self.leafs: list[Node]= []
+        self.leafs: list[Node] = []
         self.action = action
 
     def __str__(self):
@@ -35,16 +36,15 @@ class Node():
         """
 
         if self.match(text):
-            """ called with "prefix... text", not with "prefix... text ".
+            """called with "prefix... text", not with "prefix... text ".
             so, returns this node as the candidate.
             """
             return [(text, self.helpstr)]
 
-        candidates : list[tuple[str, str]]= []
+        candidates: list[tuple[str, str]] = []
         for leaf in self.leafs:
             candidates += leaf.candidates(text)
         return candidates
-
 
     def candidates(self, text: str) -> list[tuple[str, str]]:
         """This method returns list of candidate values of `THIS Node`
@@ -58,7 +58,7 @@ class Node():
         return []
 
     def match(self, text: str) -> bool:
-        """returns True if `text` extactly matches this Node. """
+        """returns True if `text` extactly matches this Node."""
         return self.text == text
 
     def find_leaf(self, text) -> Node | None:
@@ -67,10 +67,12 @@ class Node():
                 return leaf
         return None
 
+
 class InterfaceNode(Node):
-    """ Node representing interfaces """
+    """Node representing interfaces"""
+
     def __init__(self, action: Callable[[list[str]]] | None = None):
-        super().__init__("", "", action = action)
+        super().__init__("", "", action=action)
 
     def __str__(self):
         return "<[INTERFACE]>"

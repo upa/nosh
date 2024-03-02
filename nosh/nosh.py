@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from .node import *
@@ -7,9 +6,16 @@ import re
 import readline
 
 
-class Nosh():
-    def __init__(self):
+class Nosh:
+    def __init__(self, prompt_cb: Callable[[], str] | None = None):
         self.root = Node("root", "Root Node")
+        self.prompt_cb = prompt_cb
+
+    @property
+    def prompt(self) -> str:
+        if self.prompt_cb:
+            return self.prompt_cb()
+        return ">"
 
     def longest_match(self, prefix: list[str]) -> Node:
         ptr = self.root
@@ -22,16 +28,16 @@ class Nosh():
 
     def complete(self, text: str, state: int):
         linebuffer = readline.get_line_buffer()
-        prefix = re.split(r'\s+', linebuffer)
+        prefix = re.split(r"\s+", linebuffer)
         node = self.longest_match(prefix)
         candidates = node.compelte(linebuffer, text)
 
         if len(candidates) == 0 and not node.action:
             print("\n")
             print("  no valid completion")
-            newbuffer = "\n> {}".format(linebuffer)
+            newbuffer = "\n{} {}".format(self.prompt, linebuffer)
             print(newbuffer, end="", flush=True)
-            return 
+            return
 
         if text == "":
             print("\n")
@@ -39,7 +45,7 @@ class Nosh():
                 print("  {:16} {}".format("<[Enter]>", "Execute this command"))
             for v, h in candidates:
                 print("  {:16} {}".format(v, h))
-            newbuffer = "\n> {}".format(linebuffer)
+            newbuffer = "\n{} {}".format(self.prompt, linebuffer)
             print(newbuffer, end="", flush=True)
             return
 
@@ -47,7 +53,7 @@ class Nosh():
             return candidates[state][0] + " "
 
     def execute(self, linebuffer):
-        prefix = re.split(r'\s+', linebuffer.strip())
+        prefix = re.split(r"\s+", linebuffer.strip())
         node = self.longest_match(prefix)
         if node == self.root:
             return
@@ -56,7 +62,6 @@ class Nosh():
             return
         node.action(prefix)
 
-    
     def start_cli(self):
         readline.set_completer(self.complete)
         readline.parse_and_bind("tab: complete")
@@ -65,7 +70,7 @@ class Nosh():
 
         while True:
             try:
-                line = input("> ")
+                line = input("{} ".format(self.prompt))
                 self.execute(line)
 
             except EOFError:
