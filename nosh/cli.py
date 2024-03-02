@@ -9,7 +9,7 @@ import sys
 import readline
 
 
-class Nosh:
+class CLI:
     def __init__(self, prompt_cb: Callable[[], str] | None = None,
                  file: typing.TextIO = sys.stdout):
         self.root = Node("__root__", "Root Node")

@@ -4,15 +4,15 @@ import subprocess
 import socket
 import os
 
-import nosh
-from nosh.node import (
+from nosh import(
+    CLI,
+    Node,
     IPv4AddressNode,
     IPv6AddressNode,
     InterfaceAddressNode,
     InterfaceNode,
     StringNode,
 )
-from nosh.nosh import Node
 
 
 def prompt_cb() -> str:
@@ -45,7 +45,7 @@ def act_print_args(args):
 
 def main():
 
-    cli = nosh.Nosh(prompt_cb=prompt_cb)
+    cli = CLI(prompt_cb=prompt_cb)
 
     show = Node("show", "Show system information")
     show_interfaces = Node(

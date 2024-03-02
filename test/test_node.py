@@ -1,8 +1,7 @@
 
 import pytest
 
-from nosh.node import *
-from nosh.nosh import *
+from nosh import *
 
 def test_node():
     root = Node("__root__", "Root Node")
@@ -90,4 +89,4 @@ def test_interfaceaddr_node():
 
 
 def test_cli():
-    cli = Nosh()
+    cli = CLI()

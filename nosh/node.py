@@ -94,7 +94,7 @@ class Node:
         return None
 
     def find_leaf(self, p: str | Node) -> Node | None:
-        """retrusn leaf Node having the same text or the same Class"""
+        """retruns leaf Node having the same text or the same Class"""
         if isinstance(p, str):
             for leaf in self.leafs:
                 if leaf.text == p:
