@@ -53,14 +53,21 @@ class Nosh:
             return candidates[state][0] + " "
 
     def execute(self, linebuffer):
-        prefix = re.split(r"\s+", linebuffer.strip())
-        node = self.longest_match(prefix)
-        if node == self.root:
+        args = re.split(r"\s+", linebuffer.strip())
+        last = args[len(args) - 1]
+        node = self.longest_match(args)
+
+        if node == self.root and linebuffer.strip() == "":
             return
-        if not node.action:
-            print(f"{linebuffer} < invalid syntax")
+
+        if not node.action or not node.match(last):
+            # Node to be executed must have action, and
+            # the last argument must match Node.
+            print()
+            print(f"  {linebuffer} < invalid syntax")
+            print(flush=True)
             return
-        node.action(prefix)
+        node.action(args)
 
     def start_cli(self):
         readline.set_completer(self.complete)
