@@ -51,42 +51,37 @@ def main():
     show_interfaces = Node(
         "interfaces", "Show interface information", action=act_show_interfaces
     )
-    show.append_leaf(show_interfaces)
+    show.append(show_interfaces)
     show_interfaces_ifname = InterfaceNode(action=act_show_interfaces_interface)
-    show_interfaces.append_leaf(show_interfaces_ifname)
+    show_interfaces.append(show_interfaces_ifname)
 
-    cli.root.append_leaf(show)
+    cli.root.append(show)
 
-    show.append_leaf(Node("ip", "Show ip information"))
-    show.append_leaf(Node("system", "Show system information", action=act_show_system))
+    show.append(Node("ip", "Show ip information"))
+    show.append(Node("system", "Show system information", action=act_show_system))
 
-    node_set = Node("set", "Set configuration parameters")
-    node_rm = Node("route-map", "Set route-map")
-    node_rm_name = StringNode(
+    cli.append(Node("set", "Set configuration parameters"))
+
+    cli.find(["set"]).append(Node("route-map", "Set route-map"))
+    cli.find(["set", "route-map"]).append(StringNode(
         "<route-map>", "Name to identify a route-map", action=act_print_args
-    )
-    node_rm.append_leaf(node_rm_name)
-    node_set.append_leaf(node_rm)
+    ))
 
-    node_router_id = Node("router-id", "Set router-id")
-    node_set.append_leaf(node_router_id)
-    node_router_id.append_leaf(IPv4AddressNode(action=act_print_args))
+    cli.find(["set"]).append(Node("router-id", "Set router-id"))
+    cli.find(["set", "router-id"]).append(IPv4AddressNode(action=act_print_args))
+
 
     node_addr = Node("address", "Set address")
-    node_addr.append_leaf(IPv4AddressNode(action=act_print_args))
-    node_addr.append_leaf(IPv6AddressNode(action=act_print_args))
-    node_set.append_leaf(node_addr)
+    node_addr.append(IPv4AddressNode(action=act_print_args))
+    node_addr.append(IPv6AddressNode(action=act_print_args))
+    cli.find(["set"]).append(node_addr)
 
-    node_if = Node("interface", "Set interface parameters")
-    node_if_port = InterfaceNode()
-    node_if.append_leaf(node_if_port)
-    node_ifa = Node("address", "Set interface address")
-    node_if_port.append_leaf(node_ifa)
-    node_ifa.append_leaf(InterfaceAddressNode(action=act_print_args))
-    node_set.append_leaf(node_if)
+    cli.find(["set"]).append(Node("interface", "Set inteface parameters"))
 
-    cli.root.append_leaf(node_set)
-    cli.root.append_leaf(Node("exit", "Exit from CLI", action=act_cli_exit))
+    cli.find(["set", "interface"]).append(InterfaceNode())
+    cli.find(["set", "interface", InterfaceNode]).append(InterfaceAddressNode(action=act_print_args))
+
+    cli.append(Node("exit", "Exit from CLI", action=act_cli_exit))
 
     cli.start_cli()
 

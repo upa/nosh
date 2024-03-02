@@ -1,15 +1,23 @@
 from __future__ import annotations
+import typing
 
 from .node import *
 
+import io
 import re
+import sys
 import readline
 
 
 class Nosh:
-    def __init__(self, prompt_cb: Callable[[], str] | None = None):
-        self.root = Node("root", "Root Node")
+    def __init__(self, prompt_cb: Callable[[], str] | None = None,
+                 file: typing.TextIO = sys.stdout):
+        self.root = Node("__root__", "Root Node")
         self.prompt_cb = prompt_cb
+        self.file = file
+
+    def print(self, msg, **kwargs):
+        print(msg, file = self.file, **kwargs)
 
     @property
     def prompt(self) -> str:
@@ -18,13 +26,27 @@ class Nosh:
         return ">"
 
     def longest_match(self, prefix: list[str]) -> Node:
-        ptr = self.root
+        node = self.root
         for text in prefix:
-            next_ptr = ptr.find_leaf(text)
-            if not next_ptr:
+            next_node = node.match_leaf(text)
+            if not next_node:
                 break
-            ptr = next_ptr
-        return ptr
+            node = next_node
+        return node
+
+    def find(self, path: list[str|Node]) -> Node:
+        node = self.root
+        for p in path:
+            next_node = node.find_leaf(p)
+            if not next_node:
+                break
+            node = next_node
+        if node == self.root:
+            raise ValueError(f"path {path} does not exist")
+        return node
+        
+    def append(self, *args: Node):
+        self.root.append(*args)
 
     def complete(self, text: str, state: int):
         linebuffer = readline.get_line_buffer()
@@ -33,23 +55,23 @@ class Nosh:
         candidates = node.compelte(linebuffer, text)
 
         if text == "":
-            print("\n")
+            self.print("\n")
             for v, h in candidates:
-                print("  {:16} {}".format(v, h))
+                self.print("  {:16} {}".format(v, h))
             newbuffer = "\n{} {}".format(self.prompt, linebuffer)
-            print(newbuffer, end="", flush=True)
+            self.print(newbuffer, end="", flush=True)
             return
 
         if len(candidates) == 0:
-            print("\n")
-            print("  no valid completion")
+            self.print("\n")
+            self.print("  no valid completion")
             newbuffer = "\n{} {}".format(self.prompt, linebuffer)
-            print(newbuffer, end="", flush=True)
+            self.print(newbuffer, end="", flush=True)
             return
 
         compeletion_candidates = list(
             filter(lambda x: not re.match(r"<.*>", x[0]), candidates)
-        )
+        ) # omit indicators of <INDICATOR> from candidates
 
         if state < len(compeletion_candidates):
             return compeletion_candidates[state][0] + " "
@@ -64,11 +86,12 @@ class Nosh:
 
         if not node.action or not node.match(last):
             # Node to be executed must have action, and
-            # the last argument must match Node.
-            print()
-            print(f"  {linebuffer} < invalid syntax")
-            print(flush=True)
+            # the last argument must match the last node.
+            self.print("")
+            self.print(f"  {linebuffer} < invalid syntax")
+            self.print("", flush=True)
             return
+
         node.action(args)
 
     def start_cli(self):

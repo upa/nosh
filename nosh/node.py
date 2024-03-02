@@ -1,5 +1,5 @@
 from __future__ import annotations
-from sre_constants import CATEGORY_UNI_DIGIT
+from abc import abstractmethod
 from typing import Callable
 
 import re
@@ -12,6 +12,8 @@ import ifaddr
 def pr_err(msg: str):
     print(msg, file=sys.stderr)
 
+
+        
 
 class Node:
     """Basic Node representing cli node"""
@@ -37,9 +39,10 @@ class Node:
     def __str__(self):
         return self.text
 
-    def append_leaf(self, node: Node):
-        """This method just appends the Node to as a leaf of this Node"""
-        self.leafs.append(node)
+    def append(self, *args: Node):
+        """Appends leaf nodes"""
+        for arg in args:
+            self.leafs.append(arg)
 
     def compelte(self, linebuffer: str, text: str) -> list[tuple[str, str]]:
         """This method returns list of candidate values of leaf nodes
@@ -83,12 +86,25 @@ class Node:
         """returns True if `text` extactly matches this Node."""
         return self.text == text
 
-    def find_leaf(self, text) -> Node | None:
+    def match_leaf(self, text: str) -> Node | None:
+        """returns leaf Node most matching text"""
         for leaf in self.leafs:
             if leaf.match(text):
                 return leaf
         return None
 
+    def find_leaf(self, p: str | Node) -> Node | None:
+        """retrusn leaf Node having the same text or the same Class"""
+        if isinstance(p, str):
+            for leaf in self.leafs:
+                if leaf.text == p:
+                    return leaf
+            return None
+
+        for leaf in self.leafs:
+            if type(leaf) == p:
+                return leaf
+        return None
 
 class InterfaceNode(Node):
     """Node representing interfaces"""
