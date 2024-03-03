@@ -1,39 +1,39 @@
 import pytest
 
 from nosh.cli import CLI
-from nosh.node import (
-    IntNode,
-    StaticNode,
-    StringNode,
-    InterfaceNode,
-    IPv4AddressNode,
-    IPv6AddressNode,
-    InterfaceAddressNode,
+from nosh.token import (
+    IntToken,
+    StaticToken,
+    StringToken,
+    InterfaceToken,
+    IPv4AddressToken,
+    IPv6AddressToken,
+    InterfaceAddressToken,
 )
 
 
-def test_node():
+def test_token():
 
-    root = StaticNode("__root__", "Root Node")
-    n1 = StaticNode("n1", "n1 desc")
-    n2 = StaticNode("n2", "n2 desc")
-    m1 = StaticNode("m1", "m1 desc")
+    root = StaticToken(tokenstr="__root__", desc="Root Token")
+    n1 = StaticToken(tokenstr="n1", desc="n1 desc")
+    n2 = StaticToken(tokenstr="n2", desc="n2 desc")
+    m1 = StaticToken(tokenstr="m1", desc="m1 desc")
     root.append(n1, n2, m1)
     candidates = root.complete("", "")
     tobe = [("n1", "n1 desc"), ("n2", "n2 desc"), ("m1", "m1 desc")]
     assert candidates == tobe
 
 
-def test_node_invalid_reference():
+def test_token_invalid_reference():
     with pytest.raises(ValueError):
-        StaticNode("n1", "n1 desc", reference="invalid reference")
+        StaticToken("n1", "n1 desc", reference="invalid reference")
 
 
-def test_node_complete_with_reference():
-    root = StaticNode("__root__", "Root StaticNode")
-    n1 = StaticNode("n1", "n1 desc", reference="<n1-reference>")
-    n2 = StaticNode("n2", "n2 desc")
-    m1 = StaticNode("m1", "m1 desc")
+def test_token_complete_with_reference():
+    root = StaticToken("__root__", "Root StaticToken")
+    n1 = StaticToken("n1", "n1 desc", reference="<n1-reference>")
+    n2 = StaticToken("n2", "n2 desc")
+    m1 = StaticToken("m1", "m1 desc")
     root.append(n1, n2, m1)
     candidates = root.complete("", "")
     tobe = [
@@ -45,11 +45,11 @@ def test_node_complete_with_reference():
     assert candidates == tobe
 
 
-def test_node_complete_with_startwith():
-    root = StaticNode("__root__", "Root StaticNode")
-    n1 = StaticNode("n1", "n1 desc", reference="<n1-reference>")
-    n2 = StaticNode("n2", "n2 desc")
-    m1 = StaticNode("m1", "m1 desc")
+def test_token_complete_with_startwith():
+    root = StaticToken("__root__", "Root StaticToken")
+    n1 = StaticToken("n1", "n1 desc", reference="<n1-reference>")
+    n2 = StaticToken("n2", "n2 desc")
+    m1 = StaticToken("m1", "m1 desc")
     root.append(n1, n2, m1)
     candidates = root.complete("m", "m")
     tobe = [
@@ -59,14 +59,14 @@ def test_node_complete_with_startwith():
     assert candidates == tobe
 
 
-def test_interface_node():
-    n = InterfaceNode()
+def test_interface_token():
+    n = InterfaceToken()
     assert ("<interface-name>", "Name of interface") in n.completion_candidates("")
 
 
-def test_string_node():
+def test_string_token():
     i, desc = "<test-string>", "test string"
-    n = StringNode(i, desc)
+    n = StringToken(i, desc)
     assert [(i, desc)] == n.completion_candidates("")
 
     assert n.match("asdf")
@@ -74,16 +74,16 @@ def test_string_node():
         assert not n.match(c)
 
 
-def test_int_node():
-    n = IntNode()
+def test_int_token():
+    n = IntToken()
     assert [("<int>", "Integer")] == n.completion_candidates("")
 
     assert n.match("10")
     assert not n.match("test")
 
 
-def test_ipv4addr_node():
-    n = IPv4AddressNode()
+def test_ipv4addr_token():
+    n = IPv4AddressToken()
     assert [("<ipv4-address>", "IPv4 Address")] == n.completion_candidates("")
 
     assert n.match("1.1.1.1")
@@ -93,8 +93,8 @@ def test_ipv4addr_node():
     assert not n.match("hoge")
 
 
-def test_ipv6addr_node():
-    n = IPv6AddressNode()
+def test_ipv6addr_token():
+    n = IPv6AddressToken()
     assert [("<ipv6-address>", "IPv6 Address")] == n.completion_candidates("")
 
     assert n.match("2001:db8::1")
@@ -104,8 +104,8 @@ def test_ipv6addr_node():
     assert not n.match("hoge")
 
 
-def test_interfaceaddr_node():
-    n = InterfaceAddressNode()
+def test_interfaceaddr_token():
+    n = InterfaceAddressToken()
     tobe = [("<address>", "Interface address/prefix length")]
     assert tobe == n.completion_candidates("")
 

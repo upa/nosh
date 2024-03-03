@@ -1,21 +1,19 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod, abstractproperty
-from os import pardir
-from typing import Callable, Type
+from abc import ABC, abstractmethod
+from typing import Callable
 
 import re
-import sys
 import ipaddress
 
 import ifaddr
 
 
-def instantiate(tree: dict) -> Node:
-    """instantiates Node tree from the dict. The structure of dict is
+def instantiate(tree: dict) -> Token:
+    """instantiates Token tree from the dict. The structure of dict is
 
     {
-        "class": NodeClass,
-        "token": Token,
+        "class": TokenClass,
+        "tokenstr": Tokenstr,
         "desc": Description,
         "reference": Reference,
         "reference_desc": Reference_Description,
@@ -24,24 +22,24 @@ def instantiate(tree: dict) -> Node:
     }
     """
 
-    keys = ["token", "desc", "reference", "reference_desc", "action"]
+    keys = ["tokenstr", "desc", "reference", "reference_desc", "action"]
 
-    def _instantiate(obj: dict) -> Node:
+    def _instantiate(obj: dict) -> Token:
         kwargs = {}
         for k, v in obj.items():
             if k in keys:
                 kwargs[k] = v
-        node: Node = obj["class"](**kwargs)
-        return node
+        token: Token = obj["class"](**kwargs)
+        return token
 
     root = _instantiate(tree)
 
-    def _instatiate_recusive(subtree: dict, parent: Node):
-        node = _instantiate(subtree)
-        parent.append(node)
+    def _instatiate_recusive(subtree: dict, parent: Token):
+        token = _instantiate(subtree)
+        parent.append(token)
         if "leaves" in subtree:
             for leaf_obj in subtree["leaves"]:
-                _instatiate_recusive(leaf_obj, node)
+                _instatiate_recusive(leaf_obj, token)
 
     if "leaves" in tree:
         for subtree in tree["leaves"]:
@@ -50,7 +48,7 @@ def instantiate(tree: dict) -> Node:
     return root
 
 
-class Node(ABC):
+class Token(ABC):
     @property
     @abstractmethod
     def action(self) -> Callable[[list[str]]] | None:
@@ -59,55 +57,55 @@ class Node(ABC):
 
     @property
     @abstractmethod
-    def token(self) -> str:
-        """Retrun token"""
+    def tokenstr(self) -> str:
+        """Retrun tokenstr"""
         pass
 
     @abstractmethod
     def complete(
-        self, linebuffer: str, token: str, exclude: list[Node]
+        self, linebuffer: str, tokenstr: str, exclude: list[Token]
     ) -> list[tuple[str, str]]:
-        """Return candidates, list of ("token", "help") for completion
-        of leaf Nodes.
+        """Return candidates, list of ("tokenstr", "help") for completion
+        of leaf Tokens.
 
         """
         pass
 
     @abstractmethod
-    def completion_candidates(self, token: str) -> list[tuple[str, str]]:
-        """Retrun candidates, list of ("token", "help") for this Node."""
+    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
+        """Retrun candidates, list of ("tokenstr", "help") for this Token."""
         pass
 
     @abstractmethod
-    def match(self, token: str) -> bool:
-        """Return true if `token` exactly match this Node."""
+    def match(self, tokenstr: str) -> bool:
+        """Return true if `tokenstr` exactly match this Token."""
         pass
 
     @abstractmethod
-    def append(self, *args: Node):
-        """Append Nodes as leaf Nodes to this Node."""
+    def append(self, *args: Token):
+        """Append Tokens as leaf Tokens to this Token."""
         pass
 
     @abstractmethod
-    def match_leaf(self, token: str, exclude: set[Node] = set()) -> Node | None:
-        """Return Node, which matches token, from leaf Nodes,
-        otherwise None. If exclude is passed, Node included in the
+    def match_leaf(self, tokenstr: str, exclude: set[Token] = set()) -> Token | None:
+        """Return Token, which matches tokenstr, from leaf Tokens,
+        otherwise None. If exclude is passed, Token included in the
         exclude is ignored.
 
         """
         pass
 
     @abstractmethod
-    def find_leaf(self, p: str | type[Node]) -> Node | None:
-        """Return Node, which matches p (token or Node class), from
-        leaf Nodes, otherwise None.
+    def find_leaf(self, p: str | type[Token]) -> Token | None:
+        """Return Token, which matches p (tokenstr or Token class), from
+        leaf Tokens, otherwise None.
 
         """
         pass
 
 
-class BasicNode(Node):
-    """Basic Node representing cli node. Concerent Node classes should
+class BasicToken(Token):
+    """Basic Token representing cli token. Concerent Token classes should
     inehrits this class, and implement their own match and
     compelete_candidates methods.
 
@@ -115,28 +113,28 @@ class BasicNode(Node):
 
     def __init__(
         self,
-        token: str = "",
+        tokenstr: str = "",
         desc: str = "",
         reference: str = "",
         reference_desc: str = "",
         action: Callable[[list[str]]] | None = None,
     ):
-        self._token = token
+        self._tokenstr = tokenstr
         self.desc = desc
         self.reference = reference
         self.reference_desc = reference_desc
-        self.leaves: list[Node] = []
+        self.leaves: list[Token] = []
         self._action = action
 
         if self.reference and not re.match(r"<.*>", self.reference):
             raise ValueError("reference must be <REFERENCE>")
 
     def __str__(self):
-        return self.token
+        return self.tokenstr
 
     @property
-    def token(self) -> str:
-        return self._token
+    def tokenstr(self) -> str:
+        return self._tokenstr
 
     @property
     def action(self) -> Callable[[list[str]]] | None:
@@ -145,56 +143,56 @@ class BasicNode(Node):
         return None
 
     def complete(
-        self, linebuffer: str, token: str, visited: list[Node]
+        self, linebuffer: str, tokenstr: str, visited: list[Token]
     ) -> list[tuple[str, str]]:
-        """This method returns list of candidate values of leaf nodes
+        """This method returns list of candidate values of leaf tokens
         and their help strings.
 
         """
 
-        if self.match(token) and not self in visited:
-            """token matches this node. Thus, return the token as this
-            node.
+        if self.match(tokenstr) and not self in visited:
+            """tokenstr matches this token. Thus, return the tokenstr as this
+            token.
 
-            Note that StringNode class matches any string, even when
-            this complete() intend to complete leaf nodes. Consider a
-            case where linebuffer is 'ping example.com', token is
+            Note that StringToken class matches any string, even when
+            this complete() intend to complete leaf tokens. Consider a
+            case where linebuffer is 'ping example.com', tokenstr is
             'example.com', and this class is
-            StringNode. self.match(token) returns True although we
-            need to returns candidates of leaf nodes, e.g., 'ping
+            StringToken. self.match(tokenstr) returns True although we
+            need to returns candidates of leaf tokens, e.g., 'ping
             example.com count' <- we need to return 'count' as a
             candidate on this completion. Thus, we need to check (self
-            in visited). If it is ture, it means that this StringNode
-            is already matched, so we need to dig the leaf nodes."""
-            return [(token, self.desc)]
+            in visited). If it is ture, it means that this StringToken
+            is already matched, so we need to dig the leaf tokens."""
+            return [(tokenstr, self.desc)]
 
         candidates: list[tuple[str, str]] = []
-        if token == "" and self.action:
+        if tokenstr == "" and self.action:
             candidates.append(("<[Enter]>", "Execute this command"))
 
         for leaf in self.leaves:
             if leaf in visited:
                 continue
-            candidates += leaf.completion_candidates(token)
+            candidates += leaf.completion_candidates(tokenstr)
         return candidates
 
-    def append(self, *args: Node):
-        """Appends leaf nodes"""
+    def append(self, *args: Token):
+        """Appends leaf tokens"""
         for arg in args:
             self.leaves.append(arg)
 
-    def match_leaf(self, token: str) -> Node | None:
-        """returns leaf Node most matching token"""
+    def match_leaf(self, tokenstr: str) -> Token | None:
+        """returns leaf Token most matching tokenstr"""
         for leaf in self.leaves:
-            if leaf.match(token):
+            if leaf.match(tokenstr):
                 return leaf
         return None
 
-    def find_leaf(self, p: str | type[Node]) -> Node | None:
-        """retruns leaf Node having the same token or the same Class"""
+    def find_leaf(self, p: str | type[Token]) -> Token | None:
+        """retruns leaf Token having the same tokenstr or the same Class"""
         if isinstance(p, str):
             for leaf in self.leaves:
-                if leaf.token == p:
+                if leaf.tokenstr == p:
                     return leaf
             return None
 
@@ -204,39 +202,39 @@ class BasicNode(Node):
         return None
 
 
-class StaticNode(BasicNode):
-    """Static Node representing cli node"""
+class StaticToken(BasicToken):
+    """Static Token representing cli token"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if self.token == "":
-            raise ValueError("StaticNode must have token")
+        if self.tokenstr == "":
+            raise ValueError("StaticToken must have tokenstr")
 
     def __str__(self):
-        return self.token
+        return self.tokenstr
 
-    def completion_candidates(self, token: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
         candidates: list[tuple[str, str]] = []
 
         if self.reference:
             candidates.append((self.reference, self.reference_desc))
 
-        if self.token.startswith(token):
-            candidates.append((self.token, self.desc))
+        if self.tokenstr.startswith(tokenstr):
+            candidates.append((self.tokenstr, self.desc))
 
         return candidates
 
-    def match(self, token: str) -> bool:
-        """returns True if `token` extactly matches this Node."""
-        return self.token == token
+    def match(self, tokenstr: str) -> bool:
+        """returns True if `tokenstr` extactly matches this Token."""
+        return self.tokenstr == tokenstr
 
 
-class InterfaceNode(BasicNode):
-    """Node representing interfaces"""
+class InterfaceToken(BasicToken):
+    """Token representing interfaces"""
 
     def __init__(self, **kwargs):
-        if "token" in kwargs:
-            raise ValueError("InterfaceNode must not have token")
+        if "tokenstr" in kwargs:
+            raise ValueError("InterfaceToken must not have tokenstr")
 
         kwargs.setdefault("reference", "<interface-name>")
         kwargs.setdefault("reference_desc", "Name to identify an interface")
@@ -245,69 +243,69 @@ class InterfaceNode(BasicNode):
     def __str__(self):
         return "<Interface>"
 
-    def completion_candidates(self, token: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
 
         candidates: list[tuple[str, str]] = []
         if self.reference:
             candidates.append((self.reference, self.reference_desc))
 
         for adapter in ifaddr.get_adapters():
-            if adapter.name.startswith(token):
+            if adapter.name.startswith(tokenstr):
                 candidates.append((adapter.name, ""))
         return candidates
 
-    def match(self, token: str) -> bool:
+    def match(self, tokenstr: str) -> bool:
         for adapter in ifaddr.get_adapters():
-            if adapter.name == token:
+            if adapter.name == tokenstr:
                 return True
         return False
 
 
-class StringNode(BasicNode):
-    """Node representing string"""
+class StringToken(BasicToken):
+    """Token representing string"""
 
     def __init__(self, **kwargs):
-        if "token" in kwargs:
-            raise ValueError("StringNode must not have token")
+        if "tokenstr" in kwargs:
+            raise ValueError("StringToken must not have tokenstr")
         if not "reference" in kwargs:
-            raise ValueError("StringNode must have reference")
+            raise ValueError("StringToken must have reference")
         super().__init__(**kwargs)
 
     def __str__(self):
         return "<String>"
 
     def complete(
-        self, linebuffer: str, token: str, visited: list[Node]
+        self, linebuffer: str, tokenstr: str, visited: list[Token]
     ) -> list[tuple[str, str]]:
-        """This method returns list of candidate values of leaf nodes
+        """This method returns list of candidate values of leaf tokens
         and their help strings.
 
         """
 
-        if self.match(token) and not self in visited:
-            return [(token, self.desc)]
+        if self.match(tokenstr) and not self in visited:
+            return [(tokenstr, self.desc)]
 
         candidates: list[tuple[str, str]] = []
-        if token == "" and self.action:
+        if tokenstr == "" and self.action:
             candidates.append(("<[Enter]>", "Execute this command"))
 
         for leaf in self.leaves:
             if leaf in visited:
                 continue
-            candidates += leaf.completion_candidates(token)
+            candidates += leaf.completion_candidates(tokenstr)
         return candidates
 
-    def completion_candidates(self, token: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, token: str) -> bool:
-        if re.match(r"[0-9a-zA-Z_\-]+", token):
+    def match(self, tokenstr: str) -> bool:
+        if re.match(r"[0-9a-zA-Z_\-]+", tokenstr):
             return True
         return False
 
 
-class IntNode(BasicNode):
-    """Node representing integer"""
+class IntToken(BasicToken):
+    """Token representing integer"""
 
     def __init__(self, **kwargs):
         kwargs.setdefault("reference", "<int>")
@@ -317,19 +315,19 @@ class IntNode(BasicNode):
     def __str__(self):
         return "<Int>"
 
-    def completion_candidates(self, token: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, token: str) -> bool:
+    def match(self, tokenstr: str) -> bool:
         try:
-            int(token)
+            int(tokenstr)
             return True
         except ValueError:
             return False
 
 
-class IPv4AddressNode(BasicNode):
-    """Node representing IPv4Address"""
+class IPv4AddressToken(BasicToken):
+    """Token representing IPv4Address"""
 
     def __init__(self, **kwargs):
         kwargs.setdefault("reference", "<ipv4-address>")
@@ -339,19 +337,19 @@ class IPv4AddressNode(BasicNode):
     def __str__(self):
         return "<IPv4Address>"
 
-    def completion_candidates(self, token: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, token: str) -> bool:
+    def match(self, tokenstr: str) -> bool:
         try:
-            ipaddress.IPv4Address(token)
+            ipaddress.IPv4Address(tokenstr)
             return True
         except ipaddress.AddressValueError:
             return False
 
 
-class IPv6AddressNode(BasicNode):
-    """Node representing IPv6Address"""
+class IPv6AddressToken(BasicToken):
+    """Token representing IPv6Address"""
 
     def __init__(self, **kwargs):
         kwargs.setdefault("reference", "<ipv6-address>")
@@ -361,19 +359,19 @@ class IPv6AddressNode(BasicNode):
     def __str__(self):
         return "<IPv6Address>"
 
-    def completion_candidates(self, token: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, token: str) -> bool:
+    def match(self, tokenstr: str) -> bool:
         try:
-            ipaddress.IPv6Address(token)
+            ipaddress.IPv6Address(tokenstr)
             return True
         except ipaddress.AddressValueError:
             return False
 
 
-class InterfaceAddressNode(BasicNode):
-    """Node representing IPv6Address"""
+class InterfaceAddressToken(BasicToken):
+    """Token representing IPv6Address"""
 
     def __init__(self, **kwargs):
         kwargs.setdefault("reference", "<address>")
@@ -383,16 +381,16 @@ class InterfaceAddressNode(BasicNode):
     def __str__(self):
         return "<InterfaceAddress>"
 
-    def completion_candidates(self, token: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, token: str) -> bool:
+    def match(self, tokenstr: str) -> bool:
 
-        if not "/" in token:
+        if not "/" in tokenstr:
             return False
 
         try:
-            ipaddress.ip_interface(token)
+            ipaddress.ip_interface(tokenstr)
             return True
         except ValueError:
             return False

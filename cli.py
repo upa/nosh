@@ -9,12 +9,12 @@ import os
 import nosh
 from nosh import (
     CLI,
-    StaticNode,
-    IPv4AddressNode,
-    InterfaceAddressNode,
-    InterfaceNode,
-    StringNode,
-    IntNode,
+    StaticToken,
+    IPv4AddressToken,
+    InterfaceAddressToken,
+    InterfaceToken,
+    StringToken,
+    IntToken,
 )
 
 
@@ -88,7 +88,7 @@ def act_ping(args: list[str]):
 
     target = args.pop()
     if target == "ping":
-        # All options removed, then the token is 'ping'. this means
+        # All options removed, then the tokenstr is 'ping'. this means
         # <targe> is not specified.
         print("<target> must be specified")
         return
@@ -106,83 +106,83 @@ def main():
 
     cli = CLI(prompt_cb=prompt_cb)
 
-    show_nodes = {
-        "token": "show",
+    show_tokens = {
+        "tokenstr": "show",
         "desc": "Show information",
-        "class": StaticNode,
+        "class": StaticToken,
         "leaves": [
             {
-                "token": "interface",
+                "tokenstr": "interface",
                 "desc": "Show interface information",
-                "class": StaticNode,
+                "class": StaticToken,
                 "action": act_show_interfaces,
                 "leaves": [
                     {
-                        "class": InterfaceNode,
+                        "class": InterfaceToken,
                         "action": act_show_interfaces_interface,
                     }
                 ],
             },
             {
-                "token": "system",
+                "tokenstr": "system",
                 "desc": "Show system information",
-                "class": StaticNode,
+                "class": StaticToken,
                 "action": act_show_system,
             },
             {
-                "token": "ip",
+                "tokenstr": "ip",
                 "desc": "Show ip information",
-                "class": StaticNode,
+                "class": StaticToken,
                 "leaves": [
                     {
-                        "token": "route",
+                        "tokenstr": "route",
                         "desc": "Show ip route information",
-                        "class": StaticNode,
+                        "class": StaticToken,
                         "action": act_show_ip_route,
                     },
                 ],
             },
         ],
     }
-    show_nodes = nosh.instantiate(show_nodes)
-    cli.append(show_nodes)
+    show_tokens = nosh.instantiate(show_tokens)
+    cli.append(show_tokens)
 
-    show_system_version = StaticNode(
-        token="version", desc="Show system version", action=act_show_system_version
+    show_system_version = StaticToken(
+        tokenstr="version", desc="Show system version", action=act_show_system_version
     )
     cli.insert(["show", "system"], show_system_version)
 
-    set_nodes = {
-        "token": "set",
+    set_tokens = {
+        "tokenstr": "set",
         "desc": "Set parameters",
-        "class": StaticNode,
+        "class": StaticToken,
         "leaves": [
             {
-                "token": "interfaces",
+                "tokenstr": "interfaces",
                 "desc": "Set interface parameters",
-                "class": StaticNode,
+                "class": StaticToken,
                 "leaves": [
                     {
-                        "class": InterfaceNode,
+                        "class": InterfaceToken,
                         "leaves": [
                             {
-                                "token": "address",
+                                "tokenstr": "address",
                                 "desc": "IP address for this interface",
-                                "class": StaticNode,
+                                "class": StaticToken,
                                 "leaves": [
                                     {
-                                        "class": InterfaceAddressNode,
+                                        "class": InterfaceAddressToken,
                                         "action": act_print_args,
                                     }
                                 ],
                             },
                             {
-                                "token": "mtu",
+                                "tokenstr": "mtu",
                                 "desc": "MTU for this interface",
-                                "class": StaticNode,
+                                "class": StaticToken,
                                 "leaves": [
                                     {
-                                        "class": IntNode,
+                                        "class": IntToken,
                                         "reference": "<mtu>",
                                         "reference_desc": "MTU value",
                                         "action": act_print_args,
@@ -194,12 +194,12 @@ def main():
                 ],
             },
             {
-                "token": "route-map",
+                "tokenstr": "route-map",
                 "desc": "Set a route-map",
-                "class": StaticNode,
+                "class": StaticToken,
                 "leaves": [
                     {
-                        "class": StringNode,
+                        "class": StringToken,
                         "reference": "<route-map>",
                         "reference_desc": "Name to identify a route-map",
                         "action": act_print_args,
@@ -207,12 +207,12 @@ def main():
                 ],
             },
             {
-                "token": "router-id",
+                "tokenstr": "router-id",
                 "desc": "Set router-id",
-                "class": StaticNode,
+                "class": StaticToken,
                 "leaves": [
                     {
-                        "class": IPv4AddressNode,
+                        "class": IPv4AddressToken,
                         "reference": "<router-id>",
                         "reference_desc": "Router Identifier",
                         "action": act_print_args,
@@ -221,60 +221,60 @@ def main():
             },
         ],
     }
-    cli.append(nosh.instantiate(set_nodes))
+    cli.append(nosh.instantiate(set_tokens))
 
     # ping command
-    pn = StaticNode(token="ping", desc="Ping remote target")
+    pn = StaticToken(tokenstr="ping", desc="Ping remote target")
 
-    ping_count_node = {
-        "token": "count",
+    ping_count_token = {
+        "tokenstr": "count",
         "desc": "Number of ping requests",
-        "class": StaticNode,
+        "class": StaticToken,
         "leaves": [
             {
-                "class": IntNode,
+                "class": IntToken,
                 "reference": "<Number>",
                 "reference_desc": "Number of ping requests",
                 "action": act_ping,
             }
         ],
     }
-    cn = nosh.instantiate(ping_count_node)
+    cn = nosh.instantiate(ping_count_token)
 
-    ping_wait_node = {
-        "token": "wait",
+    ping_wait_token = {
+        "tokenstr": "wait",
         "desc": "Wait time for ping response",
-        "class": StaticNode,
+        "class": StaticToken,
         "action": act_ping,
         "leaves": [
             {
-                "class": IntNode,
+                "class": IntToken,
                 "reference": "<Second>",
                 "reference_desc": "Seconds for waiting ping response",
                 "action": act_ping,
             }
         ],
     }
-    wn = nosh.instantiate(ping_wait_node)
+    wn = nosh.instantiate(ping_wait_token)
 
-    ping_target_node = {
-        "class": StringNode,
+    ping_target_token = {
+        "class": StringToken,
         "reference": "<target>",
         "reference_desc": "Ping target",
         "action": act_ping,
     }
-    tn = nosh.instantiate(ping_target_node)
+    tn = nosh.instantiate(ping_target_token)
 
     cli.append(pn)
     pn.append(cn, wn, tn)
     tn.append(cn, wn)
 
-    cli.insert(["ping", "count", IntNode], wn, tn)
-    cli.insert(["ping", "wait", IntNode], cn, tn)
+    cli.insert(["ping", "count", IntToken], wn, tn)
+    cli.insert(["ping", "wait", IntToken], cn, tn)
 
     # exit command
-    cli.append(StaticNode(token="exit", desc="Exit from CLI", action=act_cli_exit))
-    cli.append(StaticNode(token="quit", desc="Exit from CLI", action=act_cli_exit))
+    cli.append(StaticToken(tokenstr="exit", desc="Exit from CLI", action=act_cli_exit))
+    cli.append(StaticToken(tokenstr="quit", desc="Exit from CLI", action=act_cli_exit))
 
     cli.cli()
 

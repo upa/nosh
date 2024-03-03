@@ -6,7 +6,7 @@ import re
 import sys
 import readline
 
-from nosh.node import Node, StaticNode
+from nosh.token import Token, StaticToken
 
 
 class SyntaxError(Exception):
@@ -20,7 +20,7 @@ class CLI:
         file: TextIO = sys.stdout,
         debug=False,
     ):
-        self.root = StaticNode(token="__root__", desc="Root Node")
+        self.root = StaticToken(tokenstr="__root__", desc="Root Token")
         self.prompt_cb = prompt_cb
         self.file = file
         self.debug = debug
@@ -34,55 +34,55 @@ class CLI:
             return self.prompt_cb()
         return ">"
 
-    def longest_match(self, path: list[str]) -> tuple[Node, list[Node]]:
-        """Retruns the Node most matching the path. This function is
+    def longest_match(self, path: list[str]) -> tuple[Token, list[Token]]:
+        """Retruns the Token most matching the path. This function is
         used for compleition.
 
         """
         visited = []
-        node = self.root
-        for i, token in enumerate(path):
-            visited.append(node)
-            next_node = node.match_leaf(token)
-            if not next_node:
+        token = self.root
+        for i, tokenstr in enumerate(path):
+            visited.append(token)
+            next_token = token.match_leaf(tokenstr)
+            if not next_token:
                 break
-            node = next_node
+            token = next_token
 
         if i + 1 != len(path):
             raise SyntaxError(f"{' '.join(path[:i])} < syntax error")
 
-        return node, visited
+        return token, visited
 
-    def find(self, path: list[str | Type[Node]]) -> Node:
-        """Retruns the Node exactry matching the path."""
-        node = self.root
-        for idx, token in enumerate(path):
-            next_node = node.find_leaf(token)
-            if not next_node:
+    def find(self, path: list[str | Type[Token]]) -> Token:
+        """Retruns the Token exactry matching the path."""
+        token = self.root
+        for idx, tokenstr in enumerate(path):
+            next_token = token.find_leaf(tokenstr)
+            if not next_token:
                 if idx < (len(path) - 1):
-                    raise ValueError(f"no node path '{path}'")
+                    raise ValueError(f"no token path '{path}'")
                 break
-            node = next_node
-        return node
+            token = next_token
+        return token
 
-    def append(self, *args: Node):
-        """Appends Node(s) to the top of this CLI."""
+    def append(self, *args: Token):
+        """Appends Token(s) to the top of this CLI."""
         self.root.append(*args)
 
-    def insert(self, path: list[str | Type[Node]], *nodes: Node):
-        """Inserts Node(s) as leaves of a Node exactily matching the
+    def insert(self, path: list[str | Type[Token]], *tokens: Token):
+        """Inserts Token(s) as leaves of a Token exactily matching the
         path."""
         last = self.find(path)
-        last.append(*nodes)
+        last.append(*tokens)
 
-    def complete_readline(self, token: str, state: int):
-        return self.complete(readline.get_line_buffer(), token, state)
+    def complete_readline(self, tokenstr: str, state: int):
+        return self.complete(readline.get_line_buffer(), tokenstr, state)
 
-    def complete(self, linebuffer: str, token: str, state: int):
+    def complete(self, linebuffer: str, tokenstr: str, state: int):
         """The actual completer for readline."""
         path = re.split(r"\s+", linebuffer)
         try:
-            node, visited = self.longest_match(path)
+            token, visited = self.longest_match(path)
         except SyntaxError as e:
             self.print("\n")
             self.print(f"  {e}")
@@ -90,19 +90,19 @@ class CLI:
             self.print(newbuffer, end="", flush=True)
             return
 
-        candidates = node.complete(linebuffer, token, visited)
+        candidates = token.complete(linebuffer, tokenstr, visited)
 
         if self.debug:
             visited_str = ", ".join(map(str, visited))
             print()
             print(f"linebuffer: '{linebuffer}'")
-            print(f"token:      '{token}'")
+            print(f"tokenstr:   '{tokenstr}'")
             print(f"path:       '{path}'")
             print(f"visited:    '{visited_str}'")
-            print(f"node:       '{node}'")
+            print(f"token:       '{token}'")
             print(f"candidates: '{candidates}'")
 
-        if token == "":
+        if tokenstr == "":
             self.print("\n")
             for v, h in candidates:
                 self.print("  {:16} {}".format(v, h))
@@ -125,24 +125,24 @@ class CLI:
             return compeletion_candidates[state][0] + " "
 
     def execute(self, linebuffer):
-        """Executes action of a Node matching the linebuffer"""
+        """Executes action of a Token matching the linebuffer"""
         args = re.split(r"\s+", linebuffer.strip())
         last = args[len(args) - 1]
-        node, _ = self.longest_match(args)
+        token, _ = self.longest_match(args)
 
-        if node == self.root and linebuffer.strip() == "":
+        if token == self.root and linebuffer.strip() == "":
             # empty linebuffer.
             return
 
-        if not node.action or not node.match(last):
-            # Node to be executed must have action, and
-            # the last argument must match the last node.
+        if not token.action or not token.match(last):
+            # Token to be executed must have action, and
+            # the last argument must match the last token.
             self.print("")
             self.print(f"  {linebuffer} < invalid syntax")
             self.print("", flush=True)
             return
 
-        node.action(args)
+        token.action(args)
 
     def setup(self):
         """Setup readline completer and parse_and_bind. Call this
