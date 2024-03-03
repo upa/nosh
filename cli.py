@@ -14,7 +14,7 @@ from nosh import (
     InterfaceNode,
     StringNode,
 )
-from nosh.node import IntNode
+from nosh.node import IntNode, instantiate
 
 
 def prompt_cb() -> str:
@@ -37,73 +37,134 @@ def act_show_system(args):
     print(check_output(["uname", "-a"], text=True))
 
 
+def act_show_system_version(args):
+    os = platform.system()
+    if os == "Darwin":
+        print(check_output(["sw_vers"], text=True))
+    elif os == "Linux":
+        print(check_output(["lsb_release", "-a"], text=True))
+
+
 def act_show_ip_route(args):
     os = platform.system()
     if os == "Darwin":
         print(check_output(["netstat", "-rnfinet"], text=True))
-    elif os == "linux":
+    elif os == "Linux":
         print(check_output(["ip", "route", "show"], text=True))
 
 
 def act_print_args(args):
-    print(f"execute command: {args}")
+    print(f"execute command for: {args}")
 
 
 def main():
 
     cli = CLI(prompt_cb=prompt_cb)
 
-    cli.insert([], StaticNode("show", "Show system information"))
+    show_cmds = {
+        "token": "show",
+        "desc": "Show information",
+        "class": StaticNode,
+        "leaves": [
+            {
+                "token": "interface",
+                "desc": "Show interface information",
+                "class": StaticNode,
+                "action": act_show_interfaces,
+                "leaves": [
+                    {
+                        "class": InterfaceNode,
+                        "action": act_show_interfaces_interface,
+                    }
+                ],
+            },
+            {
+                "token": "system",
+                "desc": "Show system information",
+                "class": StaticNode,
+                "action": act_show_system,
+            },
+            {
+                "token": "ip",
+                "desc": "Show ip information",
+                "class": StaticNode,
+                "leaves": [
+                    {
+                        "token": "route",
+                        "desc": "Show ip route information",
+                        "class": StaticNode,
+                        "action": act_show_ip_route,
+                    },
+                ],
+            },
+        ],
+    }
+    show_cmds = instantiate(show_cmds)
+    cli.append(show_cmds)
 
-    cli.insert(
-        ["show"],
-        StaticNode("system", "Show System information", action=act_show_system),
+    show_system_version = StaticNode(
+        token="version", desc="Show system version", action=act_show_system_version
     )
+    cli.insert(["show", "system"], show_system_version)
 
-    cli.insert(
-        ["show"],
-        StaticNode(
-            "interfaces", "Show interface information", action=act_show_interfaces
-        ),
-    )
-    cli.insert(
-        ["show", "interfaces"], InterfaceNode(action=act_show_interfaces_interface)
-    )
+    set_cmds = {
+        "token": "set",
+        "desc": "Set parameters",
+        "class": StaticNode,
+        "leaves": [
+            {
+                "token": "interfaces",
+                "desc": "Set interface parameters",
+                "class": StaticNode,
+                "leaves": [
+                    {
+                        "class": InterfaceNode,
+                        "leaves": [
+                            {
+                                "token": "address",
+                                "desc": "IP address for this interface",
+                                "class": StaticNode,
+                                "leaves": [
+                                    {
+                                        "class": InterfaceAddressNode,
+                                        "action": act_print_args,
+                                    }
+                                ],
+                            },
+                            {
+                                "token": "mtu",
+                                "desc": "MTU for this interface",
+                                "class": StaticNode,
+                                "leaves": [
+                                    {
+                                        "class": IntNode,
+                                        "reference": "<mtu>",
+                                        "reference_desc": "MTU value",
+                                        "action": act_print_args,
+                                    }
+                                ],
+                            },
+                        ],
+                    }
+                ],
+            },
+            {
+                "token": "router-id",
+                "desc": "Set router-id",
+                "class": StaticNode,
+                "leaves": [
+                    {
+                        "class": IPv4AddressNode,
+                        "reference": "<router-id>",
+                        "reference_desc": "Router Identifier",
+                        "action": act_print_args,
+                    }
+                ],
+            },
+        ],
+    }
 
-    cli.insert(["show"], StaticNode("ip", "Show ip information"))
-    cli.insert(
-        ["show", "ip"],
-        StaticNode("route", "Show ip route information", action=act_show_ip_route),
-    )
-
-    cli.insert([], StaticNode("set", "Set configuration parameters"))
-    cli.insert(["set"], StaticNode("route-map", "Set route-map"))
-    cli.insert(
-        ["set", "route-map"],
-        StringNode(
-            reference="<route-map>",
-            reference_desc="Name to identify a route-map",
-            action=act_print_args
-        ),
-    )
-
-    cli.insert(["set"], StaticNode("router-id", "Set router-id"))
-    cli.insert(["set", "router-id"], IPv4AddressNode(action=act_print_args))
-
-    cli.insert(["set"], StaticNode("interface", "Set interface parameters"))
-    cli.insert(["set", "interface"], InterfaceNode())
-    cli.insert(
-        ["set", "interface", InterfaceNode],
-        StaticNode("address", "IP address for this interface"),
-    )
-    cli.insert(
-        ["set", "interface", InterfaceNode, "address"],
-        InterfaceAddressNode(action=act_show_ip_route),
-    )
-    cli.insert(["set", "interface", InterfaceNode], StaticNode("mtu", "Set MTU"))
-    cli.insert(
-        ["set", "interface", InterfaceNode, "mtu"], IntNode(action=act_print_args)
-    )
+    cli.append(instantiate(set_cmds))
 
     cli.append(StaticNode("exit", "Exit from CLI", action=act_cli_exit))
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod, abstractproperty
+from os import pardir
 from typing import Callable, Type
 
 import re
@@ -10,15 +11,44 @@ import ifaddr
 
 
 def instantiate(tree: dict) -> Node:
-    """ instantiates Node tree from the dict. The structure of dict is
+    """instantiates Node tree from the dict. The structure of dict is
 
     {
         "class": NodeClass,
-        "args"
+        "token": Token,
+        "desc": Description,
+        "reference": Reference,
+        "reference_desc": Reference_Description,
+        "action": Action,
+        "leaves": [ {...}, ... ]
     }
-
     """
-    
+
+    keys = ["token", "desc", "reference", "reference_desc", "action"]
+
+    def _instantiate(obj: dict) -> Node:
+        kwargs = {}
+        for k, v in obj.items():
+            if k in keys:
+                kwargs[k] = v
+        node: Node = obj["class"](**kwargs)
+        return node
+
+    root = _instantiate(tree)
+
+    def _instatiate_recusive(subtree: dict, parent: Node):
+        node = _instantiate(subtree)
+        parent.append(node)
+        if "leaves" in subtree:
+            for leaf_obj in subtree["leaves"]:
+                _instatiate_recusive(leaf_obj, node)
+
+    if "leaves" in tree:
+        for subtree in tree["leaves"]:
+            _instatiate_recusive(subtree, root)
+
+    return root
+
 
 class Node(ABC):
     @property
@@ -90,7 +120,7 @@ class BasicNode(Node):
         self.desc = desc
         self.reference = reference
         self.reference_desc = reference_desc
-        self.leafs: list[Node] = []
+        self.leaves: list[Node] = []
         self._action = action
 
         if self.reference and not re.match(r"<.*>", self.reference):
@@ -125,18 +155,18 @@ class BasicNode(Node):
         if self.action:
             candidates.append(("<[Enter]>", "Execute this command"))
 
-        for leaf in self.leafs:
+        for leaf in self.leaves:
             candidates += leaf.completion_candidates(token)
         return candidates
 
     def append(self, *args: Node):
         """Appends leaf nodes"""
         for arg in args:
-            self.leafs.append(arg)
+            self.leaves.append(arg)
 
     def match_leaf(self, token: str) -> Node | None:
         """returns leaf Node most matching token"""
-        for leaf in self.leafs:
+        for leaf in self.leaves:
             if leaf.match(token):
                 return leaf
         return None
@@ -144,12 +174,12 @@ class BasicNode(Node):
     def find_leaf(self, p: str | type[Node]) -> Node | None:
         """retruns leaf Node having the same token or the same Class"""
         if isinstance(p, str):
-            for leaf in self.leafs:
+            for leaf in self.leaves:
                 if leaf.token == p:
                     return leaf
             return None
 
-        for leaf in self.leafs:
+        for leaf in self.leaves:
             if type(leaf) == p:
                 return leaf
         return None
@@ -207,7 +237,6 @@ class InterfaceNode(BasicNode):
         kwargs.setdefault("reference_desc", "Name to identify an interface")
         super().__init__(**kwargs)
 
-
     def __str__(self):
         return "<Interface>"
 
@@ -254,10 +283,10 @@ class StringNode(BasicNode):
 class IntNode(BasicNode):
     """Node representing integer"""
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         kwargs.setdefault("reference", "<int>")
         kwargs.setdefault("reference_desc", "Integer")
-        super().__init__(**kwargs)            
+        super().__init__(**kwargs)
 
     def __str__(self):
         return "<Int>"
