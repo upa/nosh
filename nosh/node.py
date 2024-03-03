@@ -64,7 +64,9 @@ class Node(ABC):
         pass
 
     @abstractmethod
-    def complete(slef, linebuffer: str, token: str) -> list[tuple[str, str]]:
+    def complete(
+        self, linebuffer: str, token: str, exclude: list[Node]
+    ) -> list[tuple[str, str]]:
         """Return candidates, list of ("token", "help") for completion
         of leaf Nodes.
 
@@ -87,9 +89,12 @@ class Node(ABC):
         pass
 
     @abstractmethod
-    def match_leaf(self, token: str) -> Node | None:
-        """Return Node, which matches token, from leaf Nodes, otherwise
-        None."""
+    def match_leaf(self, token: str, exclude: set[Node] = set()) -> Node | None:
+        """Return Node, which matches token, from leaf Nodes,
+        otherwise None. If exclude is passed, Node included in the
+        exclude is ignored.
+
+        """
         pass
 
     @abstractmethod
@@ -139,23 +144,37 @@ class BasicNode(Node):
             return self._action
         return None
 
-    def complete(self, linebuffer: str, token: str) -> list[tuple[str, str]]:
+    def complete(
+        self, linebuffer: str, token: str, visited: list[Node]
+    ) -> list[tuple[str, str]]:
         """This method returns list of candidate values of leaf nodes
         and their help strings.
 
         """
 
-        if self.match(token):
-            """linebuffer is "prefix token", not "prefix... token ",
-            which search the next node. So, returns this node as the
-            candidate."""
+        if self.match(token) and not self in visited:
+            """token matches this node. Thus, return the token as this
+            node.
+
+            Note that StringNode class matches any string, even when
+            this complete() intend to complete leaf nodes. Consider a
+            case where linebuffer is 'ping example.com', token is
+            'example.com', and this class is
+            StringNode. self.match(token) returns True although we
+            need to returns candidates of leaf nodes, e.g., 'ping
+            example.com count' <- we need to return 'count' as a
+            candidate on this completion. Thus, we need to check (self
+            in visited). If it is ture, it means that this StringNode
+            is already matched, so we need to dig the leaf nodes."""
             return [(token, self.desc)]
 
         candidates: list[tuple[str, str]] = []
-        if self.action:
+        if token == "" and self.action:
             candidates.append(("<[Enter]>", "Execute this command"))
 
         for leaf in self.leaves:
+            if leaf in visited:
+                continue
             candidates += leaf.completion_candidates(token)
         return candidates
 
@@ -188,24 +207,10 @@ class BasicNode(Node):
 class StaticNode(BasicNode):
     """Static Node representing cli node"""
 
-    def __init__(
-        self,
-        token: str,
-        desc: str,
-        reference: str = "",
-        reference_desc: str = "",
-        action: Callable[[list[str]]] | None = None,
-    ):
-        super().__init__(
-            token,
-            desc,
-            reference=reference,
-            reference_desc=reference_desc,
-            action=action,
-        )
-
-        if self.reference and not re.match(r"<.*>", self.reference):
-            raise ValueError("reference must be <REFERENCE>")
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.token == "":
+            raise ValueError("StaticNode must have token")
 
     def __str__(self):
         return self.token
@@ -270,6 +275,27 @@ class StringNode(BasicNode):
 
     def __str__(self):
         return "<String>"
+
+    def complete(
+        self, linebuffer: str, token: str, visited: list[Node]
+    ) -> list[tuple[str, str]]:
+        """This method returns list of candidate values of leaf nodes
+        and their help strings.
+
+        """
+
+        if self.match(token) and not self in visited:
+            return [(token, self.desc)]
+
+        candidates: list[tuple[str, str]] = []
+        if token == "" and self.action:
+            candidates.append(("<[Enter]>", "Execute this command"))
+
+        for leaf in self.leaves:
+            if leaf in visited:
+                continue
+            candidates += leaf.completion_candidates(token)
+        return candidates
 
     def completion_candidates(self, token: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
