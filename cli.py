@@ -88,7 +88,7 @@ def act_ping(args: list[str]):
 
     target = args.pop()
     if target == "ping":
-        # All options removed, then the tokenstr is 'ping'. this means
+        # All options removed, then the text is 'ping'. this means
         # <targe> is not specified.
         print("<target> must be specified")
         return
@@ -107,12 +107,12 @@ def main():
     cli = CLI(prompt_cb=prompt_cb)
 
     show_tokens = {
-        "tokenstr": "show",
+        "text": "show",
         "desc": "Show information",
         "class": StaticToken,
         "leaves": [
             {
-                "tokenstr": "interface",
+                "text": "interface",
                 "desc": "Show interface information",
                 "class": StaticToken,
                 "action": act_show_interfaces,
@@ -124,18 +124,18 @@ def main():
                 ],
             },
             {
-                "tokenstr": "system",
+                "text": "system",
                 "desc": "Show system information",
                 "class": StaticToken,
                 "action": act_show_system,
             },
             {
-                "tokenstr": "ip",
+                "text": "ip",
                 "desc": "Show ip information",
                 "class": StaticToken,
                 "leaves": [
                     {
-                        "tokenstr": "route",
+                        "text": "route",
                         "desc": "Show ip route information",
                         "class": StaticToken,
                         "action": act_show_ip_route,
@@ -148,27 +148,27 @@ def main():
     cli.append(show_tokens)
 
     show_system_version = StaticToken(
-        tokenstr="version", desc="Show system version", action=act_show_system_version
+        text="version", desc="Show system version", action=act_show_system_version
     )
     cli.insert(["show", "system"], show_system_version)
 
     set_tokens = {
-        "tokenstr": "set",
-        "desc": "Set parameters",
         "class": StaticToken,
+        "text": "set",
+        "desc": "Set parameters",
         "leaves": [
             {
-                "tokenstr": "interfaces",
-                "desc": "Set interface parameters",
                 "class": StaticToken,
+                "text": "interfaces",
+                "desc": "Set interface parameters",
                 "leaves": [
                     {
                         "class": InterfaceToken,
                         "leaves": [
                             {
-                                "tokenstr": "address",
-                                "desc": "IP address for this interface",
                                 "class": StaticToken,
+                                "text": "address",
+                                "desc": "IP address for this interface",
                                 "leaves": [
                                     {
                                         "class": InterfaceAddressToken,
@@ -177,9 +177,9 @@ def main():
                                 ],
                             },
                             {
-                                "tokenstr": "mtu",
-                                "desc": "MTU for this interface",
                                 "class": StaticToken,
+                                "text": "mtu",
+                                "desc": "MTU for this interface",
                                 "leaves": [
                                     {
                                         "class": IntToken,
@@ -194,9 +194,9 @@ def main():
                 ],
             },
             {
-                "tokenstr": "route-map",
-                "desc": "Set a route-map",
                 "class": StaticToken,
+                "text": "route-map",
+                "desc": "Set a route-map",
                 "leaves": [
                     {
                         "class": StringToken,
@@ -207,9 +207,9 @@ def main():
                 ],
             },
             {
-                "tokenstr": "router-id",
-                "desc": "Set router-id",
                 "class": StaticToken,
+                "text": "router-id",
+                "desc": "Set router-id",
                 "leaves": [
                     {
                         "class": IPv4AddressToken,
@@ -224,12 +224,12 @@ def main():
     cli.append(nosh.instantiate(set_tokens))
 
     # ping command
-    pn = StaticToken(tokenstr="ping", desc="Ping remote target")
+    pn = StaticToken(text="ping", desc="Ping remote target")
 
     ping_count_token = {
-        "tokenstr": "count",
-        "desc": "Number of ping requests",
         "class": StaticToken,
+        "text": "count",
+        "desc": "Number of ping requests",
         "leaves": [
             {
                 "class": IntToken,
@@ -242,9 +242,9 @@ def main():
     cn = nosh.instantiate(ping_count_token)
 
     ping_wait_token = {
-        "tokenstr": "wait",
-        "desc": "Wait time for ping response",
         "class": StaticToken,
+        "text": "wait",
+        "desc": "Wait time for ping response",
         "action": act_ping,
         "leaves": [
             {
@@ -273,8 +273,8 @@ def main():
     cli.insert(["ping", "wait", IntToken], cn, tn)
 
     # exit command
-    cli.append(StaticToken(tokenstr="exit", desc="Exit from CLI", action=act_cli_exit))
-    cli.append(StaticToken(tokenstr="quit", desc="Exit from CLI", action=act_cli_exit))
+    cli.append(StaticToken(text="exit", desc="Exit from CLI", action=act_cli_exit))
+    cli.append(StaticToken(text="quit", desc="Exit from CLI", action=act_cli_exit))
 
     cli.cli()
 

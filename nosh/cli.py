@@ -20,7 +20,7 @@ class CLI:
         file: TextIO = sys.stdout,
         debug=False,
     ):
-        self.root = StaticToken(tokenstr="__root__", desc="Root Token")
+        self.root = StaticToken(text="__root__", desc="Root Token")
         self.prompt_cb = prompt_cb
         self.file = file
         self.debug = debug
@@ -41,9 +41,9 @@ class CLI:
         """
         visited = []
         token = self.root
-        for i, tokenstr in enumerate(path):
+        for i, text in enumerate(path):
             visited.append(token)
-            next_token = token.match_leaf(tokenstr)
+            next_token = token.match_leaf(text)
             if not next_token:
                 break
             token = next_token
@@ -56,8 +56,8 @@ class CLI:
     def find(self, path: list[str | Type[Token]]) -> Token:
         """Retruns the Token exactry matching the path."""
         token = self.root
-        for idx, tokenstr in enumerate(path):
-            next_token = token.find_leaf(tokenstr)
+        for idx, text in enumerate(path):
+            next_token = token.find_leaf(text)
             if not next_token:
                 if idx < (len(path) - 1):
                     raise ValueError(f"no token path '{path}'")
@@ -75,10 +75,10 @@ class CLI:
         last = self.find(path)
         last.append(*tokens)
 
-    def complete_readline(self, tokenstr: str, state: int):
-        return self.complete(readline.get_line_buffer(), tokenstr, state)
+    def complete_readline(self, text: str, state: int):
+        return self.complete(readline.get_line_buffer(), text, state)
 
-    def complete(self, linebuffer: str, tokenstr: str, state: int):
+    def complete(self, linebuffer: str, text: str, state: int):
         """The actual completer for readline."""
         path = re.split(r"\s+", linebuffer)
         try:
@@ -90,19 +90,19 @@ class CLI:
             self.print(newbuffer, end="", flush=True)
             return
 
-        candidates = token.complete(linebuffer, tokenstr, visited)
+        candidates = token.complete(linebuffer, text, visited)
 
         if self.debug:
             visited_str = ", ".join(map(str, visited))
             print()
             print(f"linebuffer: '{linebuffer}'")
-            print(f"tokenstr:   '{tokenstr}'")
+            print(f"text:       '{text}'")
             print(f"path:       '{path}'")
             print(f"visited:    '{visited_str}'")
-            print(f"token:       '{token}'")
+            print(f"token:      '{token}'")
             print(f"candidates: '{candidates}'")
 
-        if tokenstr == "":
+        if text == "":
             self.print("\n")
             for v, h in candidates:
                 self.print("  {:16} {}".format(v, h))
@@ -162,10 +162,13 @@ class CLI:
         while True:
             try:
                 line = input("{} ".format(self.prompt))
+                self.print("")
                 self.execute(line)
 
             except KeyboardInterrupt:
                 self.print("")
+                self.print("")
                 continue
+
             except EOFError:
                 break

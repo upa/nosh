@@ -13,7 +13,7 @@ def instantiate(tree: dict) -> Token:
 
     {
         "class": TokenClass,
-        "tokenstr": Tokenstr,
+        "text": Text,
         "desc": Description,
         "reference": Reference,
         "reference_desc": Reference_Description,
@@ -22,7 +22,7 @@ def instantiate(tree: dict) -> Token:
     }
     """
 
-    keys = ["tokenstr", "desc", "reference", "reference_desc", "action"]
+    keys = ["text", "desc", "reference", "reference_desc", "action"]
 
     def _instantiate(obj: dict) -> Token:
         kwargs = {}
@@ -57,28 +57,28 @@ class Token(ABC):
 
     @property
     @abstractmethod
-    def tokenstr(self) -> str:
-        """Retrun tokenstr"""
+    def text(self) -> str:
+        """Retrun text"""
         pass
 
     @abstractmethod
     def complete(
-        self, linebuffer: str, tokenstr: str, exclude: list[Token]
+        self, linebuffer: str, text: str, exclude: list[Token]
     ) -> list[tuple[str, str]]:
-        """Return candidates, list of ("tokenstr", "help") for completion
+        """Return candidates, list of ("text", "help") for completion
         of leaf Tokens.
 
         """
         pass
 
     @abstractmethod
-    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
-        """Retrun candidates, list of ("tokenstr", "help") for this Token."""
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
+        """Retrun candidates, list of ("text", "help") for this Token."""
         pass
 
     @abstractmethod
-    def match(self, tokenstr: str) -> bool:
-        """Return true if `tokenstr` exactly match this Token."""
+    def match(self, text: str) -> bool:
+        """Return true if `text` exactly match this Token."""
         pass
 
     @abstractmethod
@@ -87,8 +87,8 @@ class Token(ABC):
         pass
 
     @abstractmethod
-    def match_leaf(self, tokenstr: str, exclude: set[Token] = set()) -> Token | None:
-        """Return Token, which matches tokenstr, from leaf Tokens,
+    def match_leaf(self, text: str, exclude: set[Token] = set()) -> Token | None:
+        """Return Token, which matches text, from leaf Tokens,
         otherwise None. If exclude is passed, Token included in the
         exclude is ignored.
 
@@ -97,7 +97,7 @@ class Token(ABC):
 
     @abstractmethod
     def find_leaf(self, p: str | type[Token]) -> Token | None:
-        """Return Token, which matches p (tokenstr or Token class), from
+        """Return Token, which matches p (text or Token class), from
         leaf Tokens, otherwise None.
 
         """
@@ -113,13 +113,13 @@ class BasicToken(Token):
 
     def __init__(
         self,
-        tokenstr: str = "",
+        text: str = "",
         desc: str = "",
         reference: str = "",
         reference_desc: str = "",
         action: Callable[[list[str]]] | None = None,
     ):
-        self._tokenstr = tokenstr
+        self._text = text
         self.desc = desc
         self.reference = reference
         self.reference_desc = reference_desc
@@ -130,11 +130,11 @@ class BasicToken(Token):
             raise ValueError("reference must be <REFERENCE>")
 
     def __str__(self):
-        return self.tokenstr
+        return self.text
 
     @property
-    def tokenstr(self) -> str:
-        return self._tokenstr
+    def text(self) -> str:
+        return self._text
 
     @property
     def action(self) -> Callable[[list[str]]] | None:
@@ -143,37 +143,37 @@ class BasicToken(Token):
         return None
 
     def complete(
-        self, linebuffer: str, tokenstr: str, visited: list[Token]
+        self, linebuffer: str, text: str, visited: list[Token]
     ) -> list[tuple[str, str]]:
         """This method returns list of candidate values of leaf tokens
         and their help strings.
 
         """
 
-        if self.match(tokenstr) and not self in visited:
-            """tokenstr matches this token. Thus, return the tokenstr as this
+        if self.match(text) and not self in visited:
+            """text matches this token. Thus, return the text as this
             token.
 
             Note that StringToken class matches any string, even when
             this complete() intend to complete leaf tokens. Consider a
-            case where linebuffer is 'ping example.com', tokenstr is
+            case where linebuffer is 'ping example.com', text is
             'example.com', and this class is
-            StringToken. self.match(tokenstr) returns True although we
+            StringToken. self.match(text) returns True although we
             need to returns candidates of leaf tokens, e.g., 'ping
             example.com count' <- we need to return 'count' as a
             candidate on this completion. Thus, we need to check (self
             in visited). If it is ture, it means that this StringToken
             is already matched, so we need to dig the leaf tokens."""
-            return [(tokenstr, self.desc)]
+            return [(text, self.desc)]
 
         candidates: list[tuple[str, str]] = []
-        if tokenstr == "" and self.action:
+        if text == "" and self.action:
             candidates.append(("<[Enter]>", "Execute this command"))
 
         for leaf in self.leaves:
             if leaf in visited:
                 continue
-            candidates += leaf.completion_candidates(tokenstr)
+            candidates += leaf.completion_candidates(text)
         return candidates
 
     def append(self, *args: Token):
@@ -181,18 +181,18 @@ class BasicToken(Token):
         for arg in args:
             self.leaves.append(arg)
 
-    def match_leaf(self, tokenstr: str) -> Token | None:
-        """returns leaf Token most matching tokenstr"""
+    def match_leaf(self, text: str) -> Token | None:
+        """returns leaf Token most matching text"""
         for leaf in self.leaves:
-            if leaf.match(tokenstr):
+            if leaf.match(text):
                 return leaf
         return None
 
     def find_leaf(self, p: str | type[Token]) -> Token | None:
-        """retruns leaf Token having the same tokenstr or the same Class"""
+        """retruns leaf Token having the same text or the same Class"""
         if isinstance(p, str):
             for leaf in self.leaves:
-                if leaf.tokenstr == p:
+                if leaf.text == p:
                     return leaf
             return None
 
@@ -207,34 +207,34 @@ class StaticToken(BasicToken):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if self.tokenstr == "":
-            raise ValueError("StaticToken must have tokenstr")
+        if self.text == "":
+            raise ValueError("StaticToken must have text")
 
     def __str__(self):
-        return self.tokenstr
+        return self.text
 
-    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         candidates: list[tuple[str, str]] = []
 
         if self.reference:
             candidates.append((self.reference, self.reference_desc))
 
-        if self.tokenstr.startswith(tokenstr):
-            candidates.append((self.tokenstr, self.desc))
+        if self.text.startswith(text):
+            candidates.append((self.text, self.desc))
 
         return candidates
 
-    def match(self, tokenstr: str) -> bool:
-        """returns True if `tokenstr` extactly matches this Token."""
-        return self.tokenstr == tokenstr
+    def match(self, text: str) -> bool:
+        """returns True if `text` extactly matches this Token."""
+        return self.text == text
 
 
 class InterfaceToken(BasicToken):
     """Token representing interfaces"""
 
     def __init__(self, **kwargs):
-        if "tokenstr" in kwargs:
-            raise ValueError("InterfaceToken must not have tokenstr")
+        if "text" in kwargs:
+            raise ValueError("InterfaceToken must not have text")
 
         kwargs.setdefault("reference", "<interface-name>")
         kwargs.setdefault("reference_desc", "Name to identify an interface")
@@ -243,20 +243,20 @@ class InterfaceToken(BasicToken):
     def __str__(self):
         return "<Interface>"
 
-    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
 
         candidates: list[tuple[str, str]] = []
         if self.reference:
             candidates.append((self.reference, self.reference_desc))
 
         for adapter in ifaddr.get_adapters():
-            if adapter.name.startswith(tokenstr):
+            if adapter.name.startswith(text):
                 candidates.append((adapter.name, ""))
         return candidates
 
-    def match(self, tokenstr: str) -> bool:
+    def match(self, text: str) -> bool:
         for adapter in ifaddr.get_adapters():
-            if adapter.name == tokenstr:
+            if adapter.name == text:
                 return True
         return False
 
@@ -265,8 +265,8 @@ class StringToken(BasicToken):
     """Token representing string"""
 
     def __init__(self, **kwargs):
-        if "tokenstr" in kwargs:
-            raise ValueError("StringToken must not have tokenstr")
+        if "text" in kwargs:
+            raise ValueError("StringToken must not have text")
         if not "reference" in kwargs:
             raise ValueError("StringToken must have reference")
         super().__init__(**kwargs)
@@ -275,31 +275,31 @@ class StringToken(BasicToken):
         return "<String>"
 
     def complete(
-        self, linebuffer: str, tokenstr: str, visited: list[Token]
+        self, linebuffer: str, text: str, visited: list[Token]
     ) -> list[tuple[str, str]]:
         """This method returns list of candidate values of leaf tokens
         and their help strings.
 
         """
 
-        if self.match(tokenstr) and not self in visited:
-            return [(tokenstr, self.desc)]
+        if self.match(text) and not self in visited:
+            return [(text, self.desc)]
 
         candidates: list[tuple[str, str]] = []
-        if tokenstr == "" and self.action:
+        if text == "" and self.action:
             candidates.append(("<[Enter]>", "Execute this command"))
 
         for leaf in self.leaves:
             if leaf in visited:
                 continue
-            candidates += leaf.completion_candidates(tokenstr)
+            candidates += leaf.completion_candidates(text)
         return candidates
 
-    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, tokenstr: str) -> bool:
-        if re.match(r"[0-9a-zA-Z_\-]+", tokenstr):
+    def match(self, text: str) -> bool:
+        if re.match(r"[0-9a-zA-Z_\-]+", text):
             return True
         return False
 
@@ -315,12 +315,12 @@ class IntToken(BasicToken):
     def __str__(self):
         return "<Int>"
 
-    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, tokenstr: str) -> bool:
+    def match(self, text: str) -> bool:
         try:
-            int(tokenstr)
+            int(text)
             return True
         except ValueError:
             return False
@@ -337,12 +337,12 @@ class IPv4AddressToken(BasicToken):
     def __str__(self):
         return "<IPv4Address>"
 
-    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, tokenstr: str) -> bool:
+    def match(self, text: str) -> bool:
         try:
-            ipaddress.IPv4Address(tokenstr)
+            ipaddress.IPv4Address(text)
             return True
         except ipaddress.AddressValueError:
             return False
@@ -359,12 +359,12 @@ class IPv6AddressToken(BasicToken):
     def __str__(self):
         return "<IPv6Address>"
 
-    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, tokenstr: str) -> bool:
+    def match(self, text: str) -> bool:
         try:
-            ipaddress.IPv6Address(tokenstr)
+            ipaddress.IPv6Address(text)
             return True
         except ipaddress.AddressValueError:
             return False
@@ -381,16 +381,16 @@ class InterfaceAddressToken(BasicToken):
     def __str__(self):
         return "<InterfaceAddress>"
 
-    def completion_candidates(self, tokenstr: str) -> list[tuple[str, str]]:
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
 
-    def match(self, tokenstr: str) -> bool:
+    def match(self, text: str) -> bool:
 
-        if not "/" in tokenstr:
+        if not "/" in text:
             return False
 
         try:
-            ipaddress.ip_interface(tokenstr)
+            ipaddress.ip_interface(text)
             return True
         except ValueError:
             return False
