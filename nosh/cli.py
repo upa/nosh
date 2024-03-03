@@ -106,7 +106,8 @@ class CLI:
 
         if text == "":
             self.print("\n")
-            for v, h in candidates:
+            self.print("Completions:")
+            for v, h in sorted(candidates, key = lambda x: x[0]):
                 self.print("  {:16} {}".format(v, h))
             newbuffer = "\n{} {}".format(self.prompt, linebuffer)
             self.print(newbuffer, end="", flush=True)
