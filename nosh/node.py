@@ -9,6 +9,17 @@ import ipaddress
 import ifaddr
 
 
+def instantiate(tree: dict) -> Node:
+    """ instantiates Node tree from the dict. The structure of dict is
+
+    {
+        "class": NodeClass,
+        "args"
+    }
+
+    """
+    
+
 class Node(ABC):
     @property
     @abstractmethod
@@ -69,8 +80,8 @@ class BasicNode(Node):
 
     def __init__(
         self,
-        token: str,
-        desc: str,
+        token: str = "",
+        desc: str = "",
         reference: str = "",
         reference_desc: str = "",
         action: Callable[[list[str]]] | None = None,
@@ -188,14 +199,14 @@ class StaticNode(BasicNode):
 class InterfaceNode(BasicNode):
     """Node representing interfaces"""
 
-    def __init__(self, action: Callable[[list[str]]] | None = None):
-        super().__init__(
-            "",
-            "",
-            reference="<interface-name>",
-            reference_desc="Name of interface",
-            action=action,
-        )
+    def __init__(self, **kwargs):
+        if "token" in kwargs:
+            raise ValueError("InterfaceNode must not have token")
+
+        kwargs.setdefault("reference", "<interface-name>")
+        kwargs.setdefault("reference_desc", "Name to identify an interface")
+        super().__init__(**kwargs)
+
 
     def __str__(self):
         return "<Interface>"
@@ -221,15 +232,12 @@ class InterfaceNode(BasicNode):
 class StringNode(BasicNode):
     """Node representing string"""
 
-    def __init__(
-        self,
-        reference: str,
-        reference_desc: str,
-        action: Callable[[list[str]]] | None = None,
-    ):
-        super().__init__(
-            "", "", reference=reference, reference_desc=reference_desc, action=action
-        )
+    def __init__(self, **kwargs):
+        if "token" in kwargs:
+            raise ValueError("StringNode must not have token")
+        if not "reference" in kwargs:
+            raise ValueError("StringNode must have reference")
+        super().__init__(**kwargs)
 
     def __str__(self):
         return "<String>"
@@ -246,15 +254,10 @@ class StringNode(BasicNode):
 class IntNode(BasicNode):
     """Node representing integer"""
 
-    def __init__(
-        self,
-        reference: str = "<int>",
-        reference_desc: str = "Integer",
-        action: Callable[[list[str]]] | None = None,
-    ):
-        super().__init__(
-            "", "", reference=reference, reference_desc=reference_desc, action=action
-        )
+    def __init__(self,**kwargs):
+        kwargs.setdefault("reference", "<int>")
+        kwargs.setdefault("reference_desc", "Integer")
+        super().__init__(**kwargs)            
 
     def __str__(self):
         return "<Int>"
@@ -273,14 +276,10 @@ class IntNode(BasicNode):
 class IPv4AddressNode(BasicNode):
     """Node representing IPv4Address"""
 
-    def __init__(self, action: Callable[[list[str]]] | None = None):
-        super().__init__(
-            "",
-            "",
-            reference="<ipv4-address>",
-            reference_desc="IPv4 Address",
-            action=action,
-        )
+    def __init__(self, **kwargs):
+        kwargs.setdefault("reference", "<ipv4-address>")
+        kwargs.setdefault("reference_desc", "IPv4 address")
+        super().__init__(**kwargs)
 
     def __str__(self):
         return "<IPv4Address>"
@@ -299,14 +298,10 @@ class IPv4AddressNode(BasicNode):
 class IPv6AddressNode(BasicNode):
     """Node representing IPv6Address"""
 
-    def __init__(self, action: Callable[[list[str]]] | None = None):
-        super().__init__(
-            "",
-            "",
-            reference="<ipv6-address>",
-            reference_desc="IPv6 Address",
-            action=action,
-        )
+    def __init__(self, **kwargs):
+        kwargs.setdefault("reference", "<ipv6-address>")
+        kwargs.setdefault("reference_desc", "IPv6 address")
+        super().__init__(**kwargs)
 
     def __str__(self):
         return "<IPv6Address>"
@@ -325,14 +320,10 @@ class IPv6AddressNode(BasicNode):
 class InterfaceAddressNode(BasicNode):
     """Node representing IPv6Address"""
 
-    def __init__(self, action: Callable[[list[str]]] | None = None):
-        super().__init__(
-            "",
-            "",
-            reference="<address>",
-            reference_desc="Interface address/prefix length",
-            action=action,
-        )
+    def __init__(self, **kwargs):
+        kwargs.setdefault("reference", "<address>")
+        kwargs.setdefault("reference_desc", "Address/Prefixlen")
+        super().__init__(**kwargs)
 
     def __str__(self):
         return "<InterfaceAddress>"

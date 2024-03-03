@@ -81,7 +81,9 @@ def main():
     cli.insert(
         ["set", "route-map"],
         StringNode(
-            "<route-map>", "Name to identify a route-map", action=act_print_args
+            reference="<route-map>",
+            reference_desc="Name to identify a route-map",
+            action=act_print_args
         ),
     )
 
