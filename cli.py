@@ -149,6 +149,19 @@ def main():
                 ],
             },
             {
+                "token": "route-map",
+                "desc": "Set a route-map",
+                "class": StaticNode,
+                "leaves": [
+                    {
+                        "class": StringNode,
+                        "reference": "<route-map>",
+                        "reference_desc": "Name to identify a route-map",
+                        "action": act_print_args,
+                    }
+                ],
+            },
+            {
                 "token": "router-id",
                 "desc": "Set router-id",
                 "class": StaticNode,
