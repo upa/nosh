@@ -5,7 +5,6 @@ from typing import Callable, TextIO, Type
 import re
 import sys
 import readline
-import typing
 
 from nosh.node import Node, StaticNode
 

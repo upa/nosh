@@ -5,6 +5,7 @@ import platform
 import socket
 import os
 
+import nosh
 from nosh import (
     CLI,
     StaticNode,
@@ -13,9 +14,8 @@ from nosh import (
     InterfaceAddressNode,
     InterfaceNode,
     StringNode,
+    IntNode
 )
-from nosh.node import IntNode, instantiate
-
 
 def prompt_cb() -> str:
     return "{}@{}>".format(os.getlogin(), socket.gethostname())
@@ -99,7 +99,7 @@ def main():
             },
         ],
     }
-    show_cmds = instantiate(show_cmds)
+    show_cmds = nosh.instantiate(show_cmds)
     cli.append(show_cmds)
 
     show_system_version = StaticNode(
@@ -177,7 +177,7 @@ def main():
         ],
     }
 
-    cli.append(instantiate(set_cmds))
+    cli.append(nosh.instantiate(set_cmds))
 
     cli.append(StaticNode("exit", "Exit from CLI", action=act_cli_exit))
 
