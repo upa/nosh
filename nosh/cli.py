@@ -138,7 +138,6 @@ class CLI:
         if not token.action or not token.match(last):
             # Token to be executed must have action, and
             # the last argument must match the last token.
-            self.print("")
             self.print(f"  {linebuffer} < invalid syntax")
             self.print("", flush=True)
             return

@@ -99,7 +99,7 @@ def act_ping(priv, args: list[str]):
     fork_and_exec(cmd)
 
 
-def act_print_args(args):
+def act_print_args(priv, args):
     print(f"execute command for: {args}")
 
 
