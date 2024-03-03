@@ -2,6 +2,7 @@ import pytest
 
 from nosh.cli import CLI
 from nosh.node import (
+    IntNode,
     StaticNode,
     StringNode,
     InterfaceNode,
@@ -71,6 +72,14 @@ def test_string_node():
     assert n.match("asdf")
     for c in [",", ".", "+", "*", "(", ")"]:
         assert not n.match(c)
+
+
+def test_int_node():
+    n = IntNode()
+    assert [("<int>", "Integer")] == n.completion_candidates("")
+
+    assert n.match("10")
+    assert not n.match("test")
 
 
 def test_ipv4addr_node():

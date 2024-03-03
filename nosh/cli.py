@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, TextIO
+from typing import Callable, TextIO, Type
 
 import re
 import sys
 import readline
+import typing
 
 from nosh.node import Node, StaticNode
 
@@ -28,34 +29,40 @@ class CLI:
 
     def longest_match(self, path: list[str]) -> Node:
         node = self.root
-        for text in path:
-            next_node = node.match_leaf(text)
+        for token in path:
+            next_node = node.match_leaf(token)
             if not next_node:
                 break
             node = next_node
         return node
 
-    def find(self, path: list[str | Node]) -> Node:
+    def find(self, path: list[str | Type[Node]]) -> Node:
         node = self.root
-        for p in path:
-            next_node = node.find_leaf(p)
+        for idx, token in enumerate(path):
+            next_node = node.find_leaf(token)
             if not next_node:
+                if idx < (len(path) - 1):
+                    raise ValueError(f"no node path '{path}'")
                 break
             node = next_node
-        if node == self.root:
-            raise ValueError(f"path {path} does not exist")
         return node
 
     def append(self, *args: Node):
         self.root.append(*args)
 
-    def complete(self, text: str, state: int):
-        linebuffer = readline.get_line_buffer()
+    def insert(self, path: list[str | Type[Node]], node: Node):
+        last = self.find(path)
+        last.append(node)
+
+    def complete_readline(self, token: str, state: int):
+        return self.complete(readline.get_line_buffer(), token, state)
+
+    def complete(self, linebuffer: str, token: str, state: int):
         path = re.split(r"\s+", linebuffer)
         node = self.longest_match(path)
-        candidates = node.complete(linebuffer, text)
+        candidates = node.complete(linebuffer, token)
 
-        if text == "":
+        if token == "":
             self.print("\n")
             for v, h in candidates:
                 self.print("  {:16} {}".format(v, h))
@@ -72,7 +79,7 @@ class CLI:
 
         compeletion_candidates = list(
             filter(lambda x: not re.match(r"<.*>", x[0]), candidates)
-        )  # omit indicators of <INDICATOR> from candidates
+        )  # omit references of <REFERENCE> from candidates
 
         if state < len(compeletion_candidates):
             return compeletion_candidates[state][0] + " "
@@ -97,7 +104,7 @@ class CLI:
 
     def start(self):
         readline.set_completer_delims(" ")
-        readline.set_completer(self.complete)
+        readline.set_completer(self.complete_readline)
         readline.parse_and_bind("tab: complete")
         readline.parse_and_bind("space: complete")
         readline.parse_and_bind("?: complete")
