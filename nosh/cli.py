@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, TextIO, Type
+from typing import Callable, TextIO, Type, Any
 
 import re
 import sys
@@ -17,12 +17,13 @@ class CLI:
     def __init__(
         self,
         prompt_cb: Callable[[], str] | None = None,
-        file: TextIO = sys.stdout,
+        file: TextIO = sys.stdout, private: Any = None,
         debug=False,
     ):
         self.root = StaticToken(text="__root__", desc="Root Token")
         self.prompt_cb = prompt_cb
         self.file = file
+        self.private = private
         self.debug = debug
 
     def print(self, msg, **kwargs):
@@ -142,13 +143,13 @@ class CLI:
             self.print("", flush=True)
             return
 
-        token.action(args)
+        token.action(self.private, args)
 
     def setup(self):
         """Setup readline completer and parse_and_bind. Call this
-        function of other CLI instances can switch completions, namely
-        modes.
-
+        function of other CLI instances overwrites completions. It
+        whould enable changing modes (global <-> configure), for
+        example.
         """
         readline.set_completer_delims(" ")
         readline.set_completer(self.complete_readline)
@@ -157,7 +158,7 @@ class CLI:
         readline.parse_and_bind("?: complete")
 
     def cli(self):
-        """Start to emulates a CLI."""
+        """Start to emulates shell interactions."""
         self.setup()
         while True:
             try:

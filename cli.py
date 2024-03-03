@@ -38,25 +38,26 @@ def fork_and_exec(args: list[str]):
             os.waitpid(pid, 0)
         except KeyboardInterrupt:
             pass
+    print()
 
 
-def act_cli_exit(args):
+def act_cli_exit(priv, args):
     raise EOFError
 
 
-def act_show_interfaces(args):
+def act_show_interfaces(priv, args):
     print(check_output(["ifconfig"], text=True))
 
 
-def act_show_interfaces_interface(args):
+def act_show_interfaces_interface(priv,args):
     print(check_output(["ifconfig", args.pop()], text=True))
 
 
-def act_show_system(args):
+def act_show_system(priv, args):
     print(check_output(["uname", "-a"], text=True))
 
 
-def act_show_system_version(args):
+def act_show_system_version(priv, args):
     os = platform.system()
     if os == "Darwin":
         print(check_output(["sw_vers"], text=True))
@@ -64,7 +65,7 @@ def act_show_system_version(args):
         print(check_output(["lsb_release", "-a"], text=True))
 
 
-def act_show_ip_route(args):
+def act_show_ip_route(priv, args):
     os = platform.system()
     if os == "Darwin":
         print(check_output(["netstat", "-rnfinet"], text=True))
@@ -72,7 +73,7 @@ def act_show_ip_route(args):
         print(check_output(["ip", "route", "show"], text=True))
 
 
-def act_ping(args: list[str]):
+def act_ping(priv, args: list[str]):
     cmd = ["ping"]
     option_idx = []
     for idx, key in enumerate(args):

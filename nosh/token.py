@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, Any
 
 import re
 import ipaddress
@@ -51,7 +51,7 @@ def instantiate(tree: dict) -> Token:
 class Token(ABC):
     @property
     @abstractmethod
-    def action(self) -> Callable[[list[str]]] | None:
+    def action(self) -> Callable[[Any, list[str]]] | None:
         """Return action function if registered."""
         pass
 
@@ -117,7 +117,7 @@ class BasicToken(Token):
         desc: str = "",
         reference: str = "",
         reference_desc: str = "",
-        action: Callable[[list[str]]] | None = None,
+        action: Callable[[Any, list[str]]] | None = None,
     ):
         self._text = text
         self.desc = desc
@@ -137,7 +137,7 @@ class BasicToken(Token):
         return self._text
 
     @property
-    def action(self) -> Callable[[list[str]]] | None:
+    def action(self) -> Callable[[Any, list[str]]] | None:
         if self._action:
             return self._action
         return None
@@ -157,7 +157,7 @@ class BasicToken(Token):
             Note that StringToken class matches any string, even when
             this complete() intend to complete leaf tokens. Consider a
             case where linebuffer is 'ping example.com', text is
-            'example.com', and this class is
+            'example.com', and this object is
             StringToken. self.match(text) returns True although we
             need to returns candidates of leaf tokens, e.g., 'ping
             example.com count' <- we need to return 'count' as a
@@ -203,7 +203,7 @@ class BasicToken(Token):
 
 
 class StaticToken(BasicToken):
-    """Static Token representing cli token"""
+    """Static Token representing a token with static text"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -273,27 +273,6 @@ class StringToken(BasicToken):
 
     def __str__(self):
         return "<String>"
-
-    def complete(
-        self, linebuffer: str, text: str, visited: list[Token]
-    ) -> list[tuple[str, str]]:
-        """This method returns list of candidate values of leaf tokens
-        and their help strings.
-
-        """
-
-        if self.match(text) and not self in visited:
-            return [(text, self.desc)]
-
-        candidates: list[tuple[str, str]] = []
-        if text == "" and self.action:
-            candidates.append(("<[Enter]>", "Execute this command"))
-
-        for leaf in self.leaves:
-            if leaf in visited:
-                continue
-            candidates += leaf.completion_candidates(text)
-        return candidates
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         return [(self.reference, self.reference_desc)]
