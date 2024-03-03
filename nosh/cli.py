@@ -6,7 +6,7 @@ import re
 import sys
 import readline
 
-from nosh.token import Token, StaticToken
+from nosh.token import Token, TextToken
 
 
 class SyntaxError(Exception):
@@ -17,10 +17,11 @@ class CLI:
     def __init__(
         self,
         prompt_cb: Callable[[], str] | None = None,
-        file: TextIO = sys.stdout, private: Any = None,
+        file: TextIO = sys.stdout,
+        private: Any = None,
         debug=False,
     ):
-        self.root = StaticToken(text="__root__", desc="Root Token")
+        self.root = TextToken(text="__root__", desc="Root Token")
         self.prompt_cb = prompt_cb
         self.file = file
         self.private = private
@@ -120,7 +121,7 @@ class CLI:
 
         compeletion_candidates = list(
             filter(lambda x: not re.match(r"<.*>", x[0]), candidates)
-        )  # omit references of <REFERENCE>
+        )  # omit mark of <TEXT>
 
         if state < len(compeletion_candidates):
             return compeletion_candidates[state][0] + " "

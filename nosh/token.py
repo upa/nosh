@@ -14,15 +14,14 @@ def instantiate(tree: dict) -> Token:
     {
         "class": TokenClass,
         "text": Text,
+        "mark": <Mark>,
         "desc": Description,
-        "reference": Reference,
-        "reference_desc": Reference_Description,
         "action": Action,
         "leaves": [ {...}, ... ]
     }
     """
 
-    keys = ["text", "desc", "reference", "reference_desc", "action"]
+    keys = ["text", "mark", "desc", "action"]
 
     def _instantiate(obj: dict) -> Token:
         kwargs = {}
@@ -114,20 +113,18 @@ class BasicToken(Token):
     def __init__(
         self,
         text: str = "",
+        mark: str = "",
         desc: str = "",
-        reference: str = "",
-        reference_desc: str = "",
         action: Callable[[Any, list[str]]] | None = None,
     ):
         self._text = text
+        self.mark = mark
         self.desc = desc
-        self.reference = reference
-        self.reference_desc = reference_desc
         self.leaves: list[Token] = []
         self._action = action
 
-        if self.reference and not re.match(r"<.*>", self.reference):
-            raise ValueError("reference must be <REFERENCE>")
+        if self.mark and not re.match(r"<.*>", self.mark):
+            raise ValueError("mark must be <TEXT> format")
 
     def __str__(self):
         return self.text
@@ -141,6 +138,16 @@ class BasicToken(Token):
         if self._action:
             return self._action
         return None
+
+    @classmethod
+    def must_have(cls, key: str, kwargs: dict):
+        if not key in kwargs:
+            raise ValueError(f"{cls.__name__} must have {key}")
+
+    @classmethod
+    def must_not_have(cls, key: str, kwargs: dict):
+        if key in kwargs:
+            raise ValueError(f"{cls.__name__} must not have {key}")
 
     def complete(
         self, linebuffer: str, text: str, visited: list[Token]
@@ -202,13 +209,12 @@ class BasicToken(Token):
         return None
 
 
-class StaticToken(BasicToken):
-    """Static Token representing a token with static text"""
+class TextToken(BasicToken):
+    """Text Token representing a token with static text"""
 
     def __init__(self, **kwargs):
+        self.must_have("text", kwargs)
         super().__init__(**kwargs)
-        if self.text == "":
-            raise ValueError("StaticToken must have text")
 
     def __str__(self):
         return self.text
@@ -216,8 +222,8 @@ class StaticToken(BasicToken):
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         candidates: list[tuple[str, str]] = []
 
-        if self.reference:
-            candidates.append((self.reference, self.reference_desc))
+        if self.mark:
+            candidates.append((self.mark, self.desc))
 
         if self.text.startswith(text):
             candidates.append((self.text, self.desc))
@@ -233,11 +239,9 @@ class InterfaceToken(BasicToken):
     """Token representing interfaces"""
 
     def __init__(self, **kwargs):
-        if "text" in kwargs:
-            raise ValueError("InterfaceToken must not have text")
-
-        kwargs.setdefault("reference", "<interface-name>")
-        kwargs.setdefault("reference_desc", "Name to identify an interface")
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<interface-name>")
+        kwargs.setdefault("desc", "Name to identify an interface")
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -246,8 +250,8 @@ class InterfaceToken(BasicToken):
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
 
         candidates: list[tuple[str, str]] = []
-        if self.reference:
-            candidates.append((self.reference, self.reference_desc))
+        if self.mark:
+            candidates.append((self.mark, self.desc))
 
         for adapter in ifaddr.get_adapters():
             if adapter.name.startswith(text):
@@ -265,17 +269,15 @@ class StringToken(BasicToken):
     """Token representing string"""
 
     def __init__(self, **kwargs):
-        if "text" in kwargs:
-            raise ValueError("StringToken must not have text")
-        if not "reference" in kwargs:
-            raise ValueError("StringToken must have reference")
+        self.must_not_have("text", kwargs)
+        self.must_have("mark", kwargs)
         super().__init__(**kwargs)
 
     def __str__(self):
         return "<String>"
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
-        return [(self.reference, self.reference_desc)]
+        return [(self.mark, self.desc)]
 
     def match(self, text: str) -> bool:
         if re.match(r"[0-9a-zA-Z_\-]+", text):
@@ -287,15 +289,16 @@ class IntToken(BasicToken):
     """Token representing integer"""
 
     def __init__(self, **kwargs):
-        kwargs.setdefault("reference", "<int>")
-        kwargs.setdefault("reference_desc", "Integer")
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<int>")
+        kwargs.setdefault("desc", "Integer")
         super().__init__(**kwargs)
 
     def __str__(self):
         return "<Int>"
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
-        return [(self.reference, self.reference_desc)]
+        return [(self.mark, self.desc)]
 
     def match(self, text: str) -> bool:
         try:
@@ -309,15 +312,16 @@ class IPv4AddressToken(BasicToken):
     """Token representing IPv4Address"""
 
     def __init__(self, **kwargs):
-        kwargs.setdefault("reference", "<ipv4-address>")
-        kwargs.setdefault("reference_desc", "IPv4 address")
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<ipv4-address>")
+        kwargs.setdefault("desc", "IPv4 address")
         super().__init__(**kwargs)
 
     def __str__(self):
         return "<IPv4Address>"
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
-        return [(self.reference, self.reference_desc)]
+        return [(self.mark, self.desc)]
 
     def match(self, text: str) -> bool:
         try:
@@ -331,15 +335,16 @@ class IPv6AddressToken(BasicToken):
     """Token representing IPv6Address"""
 
     def __init__(self, **kwargs):
-        kwargs.setdefault("reference", "<ipv6-address>")
-        kwargs.setdefault("reference_desc", "IPv6 address")
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<ipv6-address>")
+        kwargs.setdefault("desc", "IPv6 address")
         super().__init__(**kwargs)
 
     def __str__(self):
         return "<IPv6Address>"
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
-        return [(self.reference, self.reference_desc)]
+        return [(self.mark, self.desc)]
 
     def match(self, text: str) -> bool:
         try:
@@ -353,15 +358,16 @@ class InterfaceAddressToken(BasicToken):
     """Token representing IPv6Address"""
 
     def __init__(self, **kwargs):
-        kwargs.setdefault("reference", "<address>")
-        kwargs.setdefault("reference_desc", "Address/Prefixlen")
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<address>")
+        kwargs.setdefault("desc", "Address/Prefixlen")
         super().__init__(**kwargs)
 
     def __str__(self):
         return "<InterfaceAddress>"
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
-        return [(self.reference, self.reference_desc)]
+        return [(self.mark, self.desc)]
 
     def match(self, text: str) -> bool:
 

@@ -9,7 +9,7 @@ import os
 import nosh
 from nosh import (
     CLI,
-    StaticToken,
+    TextToken,
     IPv4AddressToken,
     InterfaceAddressToken,
     InterfaceToken,
@@ -49,7 +49,7 @@ def act_show_interfaces(priv, args):
     print(check_output(["ifconfig"], text=True))
 
 
-def act_show_interfaces_interface(priv,args):
+def act_show_interfaces_interface(priv, args):
     print(check_output(["ifconfig", args.pop()], text=True))
 
 
@@ -108,14 +108,14 @@ def main():
     cli = CLI(prompt_cb=prompt_cb)
 
     show_tokens = {
+        "class": TextToken,
         "text": "show",
         "desc": "Show information",
-        "class": StaticToken,
         "leaves": [
             {
+                "class": TextToken,
                 "text": "interface",
                 "desc": "Show interface information",
-                "class": StaticToken,
                 "action": act_show_interfaces,
                 "leaves": [
                     {
@@ -125,20 +125,20 @@ def main():
                 ],
             },
             {
+                "class": TextToken,
                 "text": "system",
                 "desc": "Show system information",
-                "class": StaticToken,
                 "action": act_show_system,
             },
             {
+                "class": TextToken,
                 "text": "ip",
                 "desc": "Show ip information",
-                "class": StaticToken,
                 "leaves": [
                     {
                         "text": "route",
                         "desc": "Show ip route information",
-                        "class": StaticToken,
+                        "class": TextToken,
                         "action": act_show_ip_route,
                     },
                 ],
@@ -148,18 +148,18 @@ def main():
     show_tokens = nosh.instantiate(show_tokens)
     cli.append(show_tokens)
 
-    show_system_version = StaticToken(
+    show_system_version = TextToken(
         text="version", desc="Show system version", action=act_show_system_version
     )
     cli.insert(["show", "system"], show_system_version)
 
     set_tokens = {
-        "class": StaticToken,
+        "class": TextToken,
         "text": "set",
         "desc": "Set parameters",
         "leaves": [
             {
-                "class": StaticToken,
+                "class": TextToken,
                 "text": "interfaces",
                 "desc": "Set interface parameters",
                 "leaves": [
@@ -167,7 +167,7 @@ def main():
                         "class": InterfaceToken,
                         "leaves": [
                             {
-                                "class": StaticToken,
+                                "class": TextToken,
                                 "text": "address",
                                 "desc": "IP address for this interface",
                                 "leaves": [
@@ -178,14 +178,14 @@ def main():
                                 ],
                             },
                             {
-                                "class": StaticToken,
+                                "class": TextToken,
                                 "text": "mtu",
                                 "desc": "MTU for this interface",
                                 "leaves": [
                                     {
                                         "class": IntToken,
-                                        "reference": "<mtu>",
-                                        "reference_desc": "MTU value",
+                                        "mark": "<mtu>",
+                                        "desc": "MTU value",
                                         "action": act_print_args,
                                     }
                                 ],
@@ -195,27 +195,27 @@ def main():
                 ],
             },
             {
-                "class": StaticToken,
+                "class": TextToken,
                 "text": "route-map",
                 "desc": "Set a route-map",
                 "leaves": [
                     {
                         "class": StringToken,
-                        "reference": "<route-map>",
-                        "reference_desc": "Name to identify a route-map",
+                        "mark": "<route-map>",
+                        "desc": "Name to identify a route-map",
                         "action": act_print_args,
                     }
                 ],
             },
             {
-                "class": StaticToken,
+                "class": TextToken,
                 "text": "router-id",
                 "desc": "Set router-id",
                 "leaves": [
                     {
                         "class": IPv4AddressToken,
-                        "reference": "<router-id>",
-                        "reference_desc": "Router Identifier",
+                        "mark": "<router-id>",
+                        "desc": "Router Identifier",
                         "action": act_print_args,
                     }
                 ],
@@ -225,17 +225,17 @@ def main():
     cli.append(nosh.instantiate(set_tokens))
 
     # ping command
-    pn = StaticToken(text="ping", desc="Ping remote target")
+    pn = TextToken(text="ping", desc="Ping remote target")
 
     ping_count_token = {
-        "class": StaticToken,
+        "class": TextToken,
         "text": "count",
         "desc": "Number of ping requests",
         "leaves": [
             {
                 "class": IntToken,
-                "reference": "<Number>",
-                "reference_desc": "Number of ping requests",
+                "mark": "<Number>",
+                "desc": "Number of ping requests",
                 "action": act_ping,
             }
         ],
@@ -243,15 +243,15 @@ def main():
     cn = nosh.instantiate(ping_count_token)
 
     ping_wait_token = {
-        "class": StaticToken,
+        "class": TextToken,
         "text": "wait",
         "desc": "Wait time for ping response",
         "action": act_ping,
         "leaves": [
             {
                 "class": IntToken,
-                "reference": "<Second>",
-                "reference_desc": "Seconds for waiting ping response",
+                "mark": "<Second>",
+                "desc": "Seconds for waiting ping response",
                 "action": act_ping,
             }
         ],
@@ -260,8 +260,8 @@ def main():
 
     ping_target_token = {
         "class": StringToken,
-        "reference": "<target>",
-        "reference_desc": "Ping target",
+        "mark": "<target>",
+        "desc": "Ping target",
         "action": act_ping,
     }
     tn = nosh.instantiate(ping_target_token)
@@ -274,8 +274,8 @@ def main():
     cli.insert(["ping", "wait", IntToken], cn, tn)
 
     # exit command
-    cli.append(StaticToken(text="exit", desc="Exit from CLI", action=act_cli_exit))
-    cli.append(StaticToken(text="quit", desc="Exit from CLI", action=act_cli_exit))
+    cli.append(TextToken(text="exit", desc="Exit from CLI", action=act_cli_exit))
+    cli.append(TextToken(text="quit", desc="Exit from CLI", action=act_cli_exit))
 
     cli.cli()
 
