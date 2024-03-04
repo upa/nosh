@@ -66,6 +66,11 @@ class CLI:
         self.private = private
         self.debug = debug
 
+        # prefix acehives `edit`. If prefix_insert_index > 0,
+        # self.prefix is inserted into the path with the index.
+        self.prefix: list[str] = []
+        self.prefix_insert_index = 0
+
     def print(self, msg, **kwargs):
         print(msg, file=self.file, **kwargs)
 
@@ -116,12 +121,25 @@ class CLI:
         last = self.find(path)
         last.append(*tokens)
 
+    def set_prefix(self, prefix_insert_index: int, prefix: list[str]):
+        self.prefix_insert_index = prefix_insert_index
+        self.prefix = prefix
+
+    def clear_prefix(self):
+        self.prefix_insert_index = 0
+        self.prefix = []
+
     def complete_readline(self, text: str, state: int):
         return self.complete(readline.get_line_buffer(), text, state)
 
     def complete(self, linebuffer: str, text: str, state: int) -> str | None:
         """The actual completer for readline."""
         path = re.split(r"\s+", linebuffer)
+
+        if self.prefix_insert_index:
+            idx = self.prefix_insert_index
+            path = path[:idx] + self.prefix + path[idx:]
+
         try:
             token, visited = self.longest_match(path)
         except SyntaxError as e:

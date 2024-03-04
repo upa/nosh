@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""test cli"""
+
 import argparse
 import io
 
@@ -77,6 +79,15 @@ set_tree = {
                     "action": act_test_ok,
                 },
             ],
+        },
+        {
+            "class": TextToken,
+            "text" :"edit-test",
+            "leaves": [
+                {"class": TextToken, "text": "test1", "desc": "test1-desc" },
+                {"class": TextToken, "text": "test2", "desc": "test2-desc" },
+                {"class": TextToken, "text": "test3", "desc": "test3-desc" },
+            ]
         },
     ],
 }

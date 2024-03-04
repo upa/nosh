@@ -79,9 +79,24 @@ def test_string_and_text_at_same_level():
             ("<route-map>", "desc set route-map <route-map>"),
             ("text", "desc text"),
         ]
-    )
-    out += "set route-map "
+    ) + "set route-map "
 
     clear_sio()
     assert cli.complete("set route-map ", "", 0) == None
     assert sio.getvalue() == out
+
+
+def test_set_prefix():
+    prefix = ["edit-test"]
+    cli.set_prefix(1, prefix)
+
+    out = build_completion_output(
+        [("test1", "test1-desc"),
+         ("test2", "test2-desc"),
+         ("test3", "test3-desc"),]
+    ) + "set "
+
+    clear_sio()
+    assert cli.complete("set ", "", 0) == None
+    assert sio.getvalue() == out
+    cli.clear_prefix()
