@@ -9,6 +9,45 @@ import readline
 from nosh.token import Token, TextToken
 
 
+def instantiate(tree: dict) -> Token:
+    """instantiates Token tree from the dict. The structure of dict is
+
+    {
+        "class": TokenClass,
+        "text": Text,
+        "mark": <Mark>,
+        "desc": Description,
+        "action": Action,
+        "leaves": [ {...}, ... ]
+    }
+    """
+
+    keys = ["text", "mark", "desc", "action" ]
+
+    def _instantiate(obj: dict) -> Token:
+        kwargs = {}
+        for k, v in obj.items():
+            if k in keys:
+                kwargs[k] = v
+        token: Token = obj["class"](**kwargs)
+        return token
+
+    root = _instantiate(tree)
+
+    def _instatiate_recusive(subtree: dict, parent: Token):
+        token = _instantiate(subtree)
+        parent.append(token)
+        if "leaves" in subtree:
+            for leaf_obj in subtree["leaves"]:
+                _instatiate_recusive(leaf_obj, token)
+
+    if "leaves" in tree:
+        for subtree in tree["leaves"]:
+            _instatiate_recusive(subtree, root)
+
+    return root
+
+
 class SyntaxError(Exception):
     pass
 

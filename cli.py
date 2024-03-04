@@ -145,6 +145,7 @@ def main():
             },
         ],
     }
+
     show_tokens = nosh.instantiate(show_tokens)
     cli.append(show_tokens)
 
