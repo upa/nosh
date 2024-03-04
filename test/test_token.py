@@ -12,7 +12,7 @@ from nosh.token import (
 
 
 param_make_valid_token = [
-    (TextToken, { "text": "text", "desc": "desc" }),
+    (TextToken, {"text": "text", "desc": "desc"}),
     (InterfaceToken, {}),
     (StringToken, {"mark": "<string>"}),
     (IntToken, {}),
@@ -21,47 +21,51 @@ param_make_valid_token = [
     (InterfaceAddressToken, {}),
 ]
 
+
 @pytest.mark.parametrize("cls, kwargs", param_make_valid_token)
 def test_make_valid_token(cls, kwargs):
     cls(**kwargs)
 
+
 param_make_invalid_token = [
-    (TextToken, { }), # must have text 
-    (InterfaceToken, {"text": "invalid"}), # must not have text
-    (StringToken, { # must not have text
-        "text": "text", "mark": "<string>"
-    }),
-    (StringToken, {}), # must have mark
-    (IntToken, {"text": "text"}), # must not have text
-    (IPv4AddressToken, {"text": "text"}), # must not have text
-    (IPv6AddressToken, {"text": "text"}), # must not have text
-    (InterfaceAddressToken, {"text": "text"}), # must not have text
+    (TextToken, {}),  # must have text
+    (InterfaceToken, {"text": "invalid"}),  # must not have text
+    (StringToken, {"text": "text", "mark": "<string>"}),  # must not have text
+    (StringToken, {}),  # must have mark
+    (IntToken, {"text": "text"}),  # must not have text
+    (IPv4AddressToken, {"text": "text"}),  # must not have text
+    (IPv6AddressToken, {"text": "text"}),  # must not have text
+    (InterfaceAddressToken, {"text": "text"}),  # must not have text
 ]
+
 
 @pytest.mark.parametrize("cls, kwargs", param_make_invalid_token)
 def test_make_invalid_token(cls, kwargs):
     with pytest.raises(ValueError):
         cls(**kwargs)
 
+
 param_match_test = [
     (
         TextToken,
-        { "text": "text" },
-        [ "text" ], [],
+        {"text": "text"},
+        ["text"],
+        [],
     ),
     (
         StringToken,
-        { "mark": "<mark>" },
-        ["a", "asdf-asdf", "asdf_", "12345" ],
-        [" ", "*", "[]", "()" ],
+        {"mark": "<mark>"},
+        ["a", "asdf-asdf", "asdf_", "12345"],
+        [" ", "*", "[]", "()"],
     ),
     (
         IntToken,
-        { },
-        ["10", "0", "-1" ],
-        ["asdf", "a10" ],
+        {},
+        ["10", "0", "-1"],
+        ["asdf", "a10"],
     ),
 ]
+
 
 @pytest.mark.parametrize("cls, kwargs, ok, ng", param_match_test)
 def test_token_match(cls, kwargs, ok, ng):
@@ -69,7 +73,6 @@ def test_token_match(cls, kwargs, ok, ng):
 
     for m in ok:
         assert token.match(m)
-    
+
     for m in ng:
         assert not token.match(m)
-
