@@ -54,7 +54,14 @@ def build_completion_output(candidates: list[tuple[str, str]]) -> str:
 def test_full_comlete_texttoken():
 
     # Full compltion test
-    out = build_completion_output([("set", "desc set"), ("show", "desc show")])
+    out = build_completion_output(
+        [
+            ("edit", "edit test: insert edit-test"),
+            ("set", "desc set"),
+            ("show", "desc show"),
+            ("top", "clear edit prefix"),
+        ]
+    )
     clear_sio()
     assert cli.complete("", "", 0) == None
     assert sio.getvalue() == out
@@ -74,12 +81,15 @@ def test_complete_at_2nd_level():
 
 def test_string_and_text_at_same_level():
 
-    out = build_completion_output(
-        [
-            ("<route-map>", "desc set route-map <route-map>"),
-            ("text", "desc text"),
-        ]
-    ) + "set route-map "
+    out = (
+        build_completion_output(
+            [
+                ("<route-map>", "desc set route-map <route-map>"),
+                ("text", "desc text"),
+            ]
+        )
+        + "set route-map "
+    )
 
     clear_sio()
     assert cli.complete("set route-map ", "", 0) == None
@@ -90,13 +100,21 @@ def test_set_prefix():
     prefix = ["edit-test"]
     cli.set_prefix(1, prefix)
 
-    out = build_completion_output(
-        [("test1", "test1-desc"),
-         ("test2", "test2-desc"),
-         ("test3", "test3-desc"),]
-    ) + "set "
+    out = (
+        build_completion_output(
+            [
+                ("test1", "test1-desc"),
+                ("test2", "test2-desc"),
+                ("test3", "test3-desc"),
+            ]
+        )
+        + "set "
+    )
 
     clear_sio()
     assert cli.complete("set ", "", 0) == None
     assert sio.getvalue() == out
+    test_complete_at_1st_level()
     cli.clear_prefix()
+    test_complete_at_1st_level()
+    test_complete_at_2nd_level()

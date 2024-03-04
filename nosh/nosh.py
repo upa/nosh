@@ -136,10 +136,20 @@ class CLI:
         """The actual completer for readline."""
         path = re.split(r"\s+", linebuffer)
 
-        if self.prefix_insert_index:
+        if self.debug:
+            print()
+            print(f"linebuffer: '{linebuffer}'")
+            print(f"text:       '{text}'")
+            print(f"state:      '{state}'")
+            print(f"prefix:     '{self.prefix}'")
+            print(f"path:       '{path}'")
+
+        if linebuffer and self.prefix and self.prefix_insert_index < len(path):
             idx = self.prefix_insert_index
             path = path[:idx] + self.prefix + path[idx:]
-
+            if self.debug:
+                print(f"---prefix inserted---")
+                print(f"path:       '{path}'")
         try:
             token, visited = self.longest_match(path)
         except SyntaxError as e:
@@ -153,10 +163,7 @@ class CLI:
 
         if self.debug:
             visited_str = ", ".join(map(str, visited))
-            print()
-            print(f"linebuffer: '{linebuffer}'")
-            print(f"text:       '{text}'")
-            print(f"path:       '{path}'")
+
             print(f"visited:    '{visited_str}'")
             print(f"token:      '{token}'")
             print(f"candidates: '{candidates}'")
