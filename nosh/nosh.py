@@ -76,8 +76,8 @@ class CLI:
         return ">"
 
     def longest_match(self, path: list[str]) -> tuple[Token, list[Token]]:
-        """Retruns the Token most matching the path. This function is
-        used for compleition.
+        """Retruns the Token most matching the path, and list of
+        visted Toekn(s). This function is used for compleition.
 
         """
         visited = []
@@ -119,7 +119,7 @@ class CLI:
     def complete_readline(self, text: str, state: int):
         return self.complete(readline.get_line_buffer(), text, state)
 
-    def complete(self, linebuffer: str, text: str, state: int):
+    def complete(self, linebuffer: str, text: str, state: int) -> str | None:
         """The actual completer for readline."""
         path = re.split(r"\s+", linebuffer)
         try:
