@@ -163,7 +163,6 @@ class CLI:
 
         if self.debug:
             visited_str = ", ".join(map(str, visited))
-
             print(f"visited:    '{visited_str}'")
             print(f"token:      '{token}'")
             print(f"candidates: '{candidates}'")

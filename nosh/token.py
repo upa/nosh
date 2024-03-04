@@ -45,7 +45,7 @@ class Token(ABC):
         pass
 
     @abstractmethod
-    def match_leaf(self, text: str, exclude: set[Token] = set()) -> Token | None:
+    def match_leaf(self, text: str) -> Token | None:
         """Return Token, which matches text, from leaf Tokens,
         otherwise None. If exclude is passed, Token included in the
         exclude is ignored.
