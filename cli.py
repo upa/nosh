@@ -80,7 +80,7 @@ def act_ping(priv, args: list[str]):
         if key == "count":
             cmd += ["-c", args[idx + 1]]
             option_idx += [idx, idx + 1]
-        elif key == "timeout":
+        elif key == "wait":
             cmd += ["-W", args[idx + 1]]
             option_idx += [idx, idx + 1]
 
