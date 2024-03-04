@@ -22,9 +22,7 @@ class Token(ABC):
         pass
 
     @abstractmethod
-    def complete(
-        self, linebuffer: str, text: str, visited: list[Token]
-    ) -> list[tuple[str, str]]:
+    def complete(self, text: str, visited: list[Token]) -> list[tuple[str, str]]:
         """Return candidates, list of ("text", "help") for completion
         of leaf Tokens.
 
@@ -110,9 +108,7 @@ class BasicToken(Token):
         if key in kwargs:
             raise ValueError(f"{cls.__name__} must not have {key}")
 
-    def complete(
-        self, linebuffer: str, text: str, visited: list[Token]
-    ) -> list[tuple[str, str]]:
+    def complete(self, text: str, visited: list[Token]) -> list[tuple[str, str]]:
         """This method returns list of candidate values of leaf tokens
         and their help strings.
 

@@ -22,7 +22,7 @@ def instantiate(tree: dict) -> Token:
     }
     """
 
-    keys = ["text", "mark", "desc", "action" ]
+    keys = ["text", "mark", "desc", "action"]
 
     def _instantiate(obj: dict) -> Token:
         kwargs = {}
@@ -131,7 +131,7 @@ class CLI:
             self.print(newbuffer, end="", flush=True)
             return
 
-        candidates = token.complete(linebuffer, text, visited)
+        candidates = token.complete(text, visited)
 
         if self.debug:
             visited_str = ", ".join(map(str, visited))
@@ -146,7 +146,7 @@ class CLI:
         if text == "":
             self.print("\n")
             self.print("Completions:")
-            for v, h in sorted(candidates, key = lambda x: x[0]):
+            for v, h in sorted(candidates, key=lambda x: x[0]):
                 self.print("  {:16} {}".format(v, h))
             newbuffer = "\n{} {}".format(self.prompt, linebuffer)
             self.print(newbuffer, end="", flush=True)
