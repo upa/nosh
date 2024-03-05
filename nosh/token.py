@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Callable, Any, Type
 
+import os
 import re
 import ipaddress
 
@@ -268,20 +269,25 @@ class InterfaceToken(BasicToken):
     def __str__(self):
         return "<Interface>"
 
+    def _ifnames(self):
+        if os.path.exists("/sys/class/net"):
+            return os.listdir("/sys/class/net")
+        return map(lambda a: a.name, ifaddr.get_adapters())
+
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
 
         candidates: list[tuple[str, str]] = []
         if self.mark:
             candidates.append((self.mark, self.desc))
 
-        for adapter in ifaddr.get_adapters():
-            if adapter.name.startswith(text):
-                candidates.append((adapter.name, ""))
+        for ifname in self._ifnames():
+            if ifname.startswith(text):
+                candidates.append((ifname, ""))
         return candidates
 
     def match(self, text: str) -> bool:
-        for adapter in ifaddr.get_adapters():
-            if adapter.name == text:
+        for ifname in self._ifnames():
+            if ifname == text:
                 return True
         return False
 
