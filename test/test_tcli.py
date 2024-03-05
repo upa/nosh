@@ -31,7 +31,7 @@ def test_execute():
 
     clear_sio()
     cli.execute("set router-id 1.1.1.1 ")
-    assert sio.getvalue() == "set router-id 1.1.1.1"
+    assert sio.getvalue() == "set router-id 1.1.1.1\n"
 
 
 def clear_sio():
