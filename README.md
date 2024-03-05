@@ -33,8 +33,8 @@ example, token `set` may have leaf tokens of `show`, `clear`, and
 address to the interface `eth0`.
 
 You usually type `tab`, `space`, or `?` to print possible completions
-with descriptions. If you do this with command line `set interfaces`,
-the CLI shows like:
+with descriptions. If you do this with the exaxmple command line `set
+interfaces`, the CLI shows like:
 
 ```
 prompt> set interfaces
@@ -48,11 +48,11 @@ Completions:
   lo
 ```
 
-We call this possible completions *descriptions*. A completion with
-form `<mark>` is called `mark`. Mark indicates what this token
-requires (interface name in this case), but itself is not for the
-input completion (`<interface-name>` is not inserted to line buffer
-even when input is `<inte`).
+We call this output of possible completions and their help strings
+*descriptions*. A completion with form `<mark>` is called `mark`. Mark
+indicates what this token requires (interface name in this case), but
+itself is not for the input completion (`<interface-name>` is not
+inserted to line buffer even when input is `<inte`).
 
 
 Nosh provides Token classes to implement command lines, for example:
