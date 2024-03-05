@@ -34,6 +34,11 @@ def test_execute():
     assert sio.getvalue() == "set router-id 1.1.1.1\n"
 
 
+def test_syntaxerror():
+    with pytest.raises(SyntaxError):
+        cli.execute("invalid syntax")
+
+
 def clear_sio():
     sio.truncate(0)
     sio.seek(0)

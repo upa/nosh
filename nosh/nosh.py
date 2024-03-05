@@ -223,9 +223,7 @@ class CLI:
         if not token.action or not token.match(last):
             # Token to be executed must have action, and
             # the last argument must match the last token.
-            self._pr(f"  {linebuffer} < invalid syntax")
-            self._pr("", flush=True)
-            return
+            raise SyntaxError(f"{linebuffer} < invalid syntax")
 
         token.action(self.private, args)
         self._pr("", flush=True)
@@ -250,6 +248,10 @@ class CLI:
                 line = input("{} ".format(self.prompt))
                 self._pr("")
                 self.execute(line)
+
+            except SyntaxError as e:
+                self._pr(f"  {e}")
+                self._pr("")
 
             except KeyboardInterrupt:
                 self._pr("")
