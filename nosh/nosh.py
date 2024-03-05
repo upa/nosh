@@ -228,6 +228,7 @@ class CLI:
             return
 
         token.action(self.private, args)
+        self._pr("", flush=True)
 
     def setup(self):
         """Setup readline completer and parse_and_bind. Call this
