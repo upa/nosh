@@ -9,6 +9,9 @@ import ifaddr
 
 
 class Token(ABC):
+    """Abstract class for Token classes.
+    """
+
     @property
     @abstractmethod
     def action(self) -> Callable[[Any, list[str]]] | None:
@@ -18,12 +21,12 @@ class Token(ABC):
     @property
     @abstractmethod
     def text(self) -> str:
-        """Retrun text"""
+        """Retrun text."""
         pass
 
     @abstractmethod
     def complete(self, text: str, visited: list[Token]) -> list[tuple[str, str]]:
-        """Return candidates, list of ("text", "help") for completion
+        """Return candidates, list of ("text", "desc"), for completion
         of leaf Tokens.
 
         """
@@ -31,7 +34,9 @@ class Token(ABC):
 
     @abstractmethod
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
-        """Retrun candidates, list of ("text", "help") for this Token."""
+        """Retrun candidates, list of ("text", "desc"), for this
+        Token. This function is called from ``complete()`` of the
+        parent token."""
         pass
 
     @abstractmethod
@@ -46,27 +51,29 @@ class Token(ABC):
 
     @abstractmethod
     def match_leaf(self, text: str) -> Token | None:
-        """Return Token, which matches text, from leaf Tokens,
-        otherwise None. If exclude is passed, Token included in the
-        exclude is ignored.
-
-        """
+        """Return Token, which matches `text`, from leaf Tokens,
+        otherwise None."""
         pass
 
     @abstractmethod
     def find_leaf(self, p: str | type[Token]) -> Token | None:
-        """Return Token, which matches p (text or Token class), from
-        leaf Tokens, otherwise None.
+        """Return a Token, which matches `p` (`text` or `Token`
+        class), from leaf Tokens, otherwise None.
 
         """
+        
         pass
 
 
 class BasicToken(Token):
-    """Basic Token representing cli token. Concerent Token classes should
-    inehrits this class, and implement their own match and
-    compelete_candidates methods.
+    """Basic Token is a super class for a cli token. Concrete Token
+    classes should inehrit this class, and implement their own
+    ``match()`` and ``compelete_candidates()`` methods.
 
+    :param text: token text of this token, e.g., `show`, `route-map`, etc.
+    :param mark: like `<MARK>` that indicates what this token is (if text is not set).
+    :param desc: description string.
+    :param action: callback function if this token is executed.
     """
 
     def __init__(
@@ -167,10 +174,14 @@ class BasicToken(Token):
 
 
 class TextToken(BasicToken):
-    """Text Token representing a token with static text"""
+    """Token representing a static text.
+
+    TextToken must have `text` and not have `mark`.
+    """
 
     def __init__(self, **kwargs):
         self.must_have("text", kwargs)
+        self.must_not_have("mark", kwargs)
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -193,7 +204,13 @@ class TextToken(BasicToken):
 
 
 class InterfaceToken(BasicToken):
-    """Token representing interfaces"""
+    """Token representing interfaces.
+
+    InterfaceToken must not have `text`. Intead, it has `mark`
+    ``<interface-name>`` by default. Completion candidates are
+    interface names retrieved by ``ifaddr``.
+
+    """
 
     def __init__(self, **kwargs):
         self.must_not_have("text", kwargs)
@@ -223,7 +240,13 @@ class InterfaceToken(BasicToken):
 
 
 class StringToken(BasicToken):
-    """Token representing string"""
+    """Token representing a string.
+
+    StringToken must not have `text`. Instead, it must have `mark`.
+    For example. StringToken under TextToken(``route-map``) would have
+    `mark` ``<route-map>``.
+
+    """
 
     def __init__(self, **kwargs):
         self.must_not_have("text", kwargs)
@@ -243,7 +266,11 @@ class StringToken(BasicToken):
 
 
 class IntToken(BasicToken):
-    """Token representing integer"""
+    """Token representing integer.
+
+    IntToekn must not have `text`. It have mark ``<int>`` by default.
+
+    """
 
     def __init__(self, **kwargs):
         self.must_not_have("text", kwargs)
@@ -266,7 +293,7 @@ class IntToken(BasicToken):
 
 
 class IPv4AddressToken(BasicToken):
-    """Token representing IPv4Address"""
+    """Token representing IPv4Address."""
 
     def __init__(self, **kwargs):
         self.must_not_have("text", kwargs)
@@ -289,7 +316,7 @@ class IPv4AddressToken(BasicToken):
 
 
 class IPv6AddressToken(BasicToken):
-    """Token representing IPv6Address"""
+    """Token representing IPv6Address."""
 
     def __init__(self, **kwargs):
         self.must_not_have("text", kwargs)
@@ -312,7 +339,10 @@ class IPv6AddressToken(BasicToken):
 
 
 class InterfaceAddressToken(BasicToken):
-    """Token representing IPv6Address"""
+    """Token representing InterfaceAddress.
+
+    This token matches IPv4-ADDRESS/Preflen or IPv6-ADDRESS/preflen.
+    """
 
     def __init__(self, **kwargs):
         self.must_not_have("text", kwargs)

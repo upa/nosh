@@ -98,7 +98,7 @@ def test_string_and_text_at_same_level():
 
 def test_set_prefix():
     prefix = ["edit-test"]
-    cli.set_prefix(1, prefix)
+    cli.set_prefix(prefix)
 
     out = (
         build_completion_output(

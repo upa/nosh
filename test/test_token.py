@@ -29,6 +29,7 @@ def test_make_valid_token(cls, kwargs):
 
 param_make_invalid_token = [
     (TextToken, {}),  # must have text
+    (TextToken, {"text": "text", "mark": "<mark>"}), # must not have mark
     (InterfaceToken, {"text": "invalid"}),  # must not have text
     (StringToken, {"text": "text", "mark": "<string>"}),  # must not have text
     (StringToken, {}),  # must have mark

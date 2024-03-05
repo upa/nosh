@@ -53,6 +53,18 @@ class SyntaxError(Exception):
 
 
 class CLI:
+    """CLI represents a Command Line Interface.
+
+    CLI object holds a token tree as its completion-able commands,
+    initialize completion by readline (`setup()`), and provides a
+    wrapper to execute CLI (`cli()`).
+
+    :param prombpt_cb: Callback function that returns prompt..
+    :param file: TextIO object to write command descriptions.
+    :param private: Any object passed to action.
+    :param debug: Enable debug output.
+
+    """
     def __init__(
         self,
         prompt_cb: Callable[[], str] | None = None,
@@ -60,6 +72,7 @@ class CLI:
         private: Any = None,
         debug=False,
     ):
+
         self.root = TextToken(text="__root__", desc="Root Token")
         self.prompt_cb = prompt_cb
         self.file = file
@@ -71,20 +84,22 @@ class CLI:
         self.prefix: list[str] = []
         self.prefix_insert_index = 0
 
-    def print(self, msg, **kwargs):
+    def _pr(self, msg, **kwargs):
         print(msg, file=self.file, **kwargs)
 
     @property
     def prompt(self) -> str:
+        """A function set by `prompt_cb` argument of CLI."""
         if self.prompt_cb:
             return self.prompt_cb()
         return ">"
 
     def longest_match(self, path: list[str]) -> tuple[Token, list[Token]]:
-        """Retruns the Token most matching the path, and list of
-        visted Toekn(s). This function is used for compleition.
+        """Retruns the Token most matching the path, and visted
+        Toekn(s) as a list.
 
         """
+
         visited = []
         token = self.root
         for i, text in enumerate(path):
@@ -100,7 +115,10 @@ class CLI:
         return token, visited
 
     def find(self, path: list[str | Type[Token]]) -> Token:
-        """Retruns the Token exactry matching the path."""
+        """Retruns the Token exactry matching `path`. `path` can
+        consists of String and `Token` classes, e.g., InterfaceToken.
+
+        """
         token = self.root
         for idx, text in enumerate(path):
             next_token = token.find_leaf(text)
@@ -116,20 +134,30 @@ class CLI:
         self.root.append(*args)
 
     def insert(self, path: list[str | Type[Token]], *tokens: Token):
-        """Inserts Token(s) as leaves of a Token exactily matching the
-        path."""
+        """Inserts Token(s) as leaves of the Token exactily matching
+        the `path`.
+
+        """
         last = self.find(path)
         last.append(*tokens)
 
-    def set_prefix(self, prefix_insert_index: int, prefix: list[str]):
-        self.prefix_insert_index = prefix_insert_index
+    def set_prefix(self, prefix: list[str]):
+        """Set `prefix` for linebuffer. If prefix is set, completion
+        inserts the prefix into the next to the first token. For
+        example, prefix is ``interface ge-0/0/0`` and linebuffer is
+        ``show address``, completion runs for ``show interface
+        ge-0/0/0 address``. Namely prefix exists for the `edit`
+        feature.
+
+        """
         self.prefix = prefix
 
     def clear_prefix(self):
-        self.prefix_insert_index = 0
+        """Clear `prefix`."""
         self.prefix = []
 
     def complete_readline(self, text: str, state: int):
+        """Wrapper to be called from readline."""
         return self.complete(readline.get_line_buffer(), text, state)
 
     def complete(self, linebuffer: str, text: str, state: int) -> str | None:
@@ -144,19 +172,18 @@ class CLI:
             print(f"prefix:     '{self.prefix}'")
             print(f"path:       '{path}'")
 
-        if linebuffer and self.prefix and self.prefix_insert_index < len(path):
-            idx = self.prefix_insert_index
-            path = path[:idx] + self.prefix + path[idx:]
+        if linebuffer and self.prefix and 1 < len(path):
+            path = path[:1] + self.prefix + path[1:]
             if self.debug:
                 print(f"---prefix inserted---")
                 print(f"path:       '{path}'")
         try:
             token, visited = self.longest_match(path)
         except SyntaxError as e:
-            self.print("\n")
-            self.print(f"  {e}")
+            self._pr("\n")
+            self._pr(f"  {e}")
             newbuffer = "\n{} {}".format(self.prompt, linebuffer)
-            self.print(newbuffer, end="", flush=True)
+            self._pr(newbuffer, end="", flush=True)
             return
 
         candidates = token.complete(text, visited)
@@ -168,19 +195,19 @@ class CLI:
             print(f"candidates: '{candidates}'")
 
         if text == "":
-            self.print("\n")
-            self.print("Completions:")
+            self._pr("\n")
+            self._pr("Completions:")
             for v, h in sorted(candidates, key=lambda x: x[0]):
-                self.print("  {:16} {}".format(v, h))
+                self._pr("  {:16} {}".format(v, h))
             newbuffer = "\n{} {}".format(self.prompt, linebuffer)
-            self.print(newbuffer, end="", flush=True)
+            self._pr(newbuffer, end="", flush=True)
             return
 
         if len(candidates) == 0:
-            self.print("\n")
-            self.print("  no valid completion")
+            self._pr("\n")
+            self._pr("  no valid completion")
             newbuffer = "\n{} {}".format(self.prompt, linebuffer)
-            self.print(newbuffer, end="", flush=True)
+            self._pr(newbuffer, end="", flush=True)
             return
 
         compeletion_candidates = list(
@@ -190,7 +217,7 @@ class CLI:
         if state < len(compeletion_candidates):
             return compeletion_candidates[state][0] + " "
 
-    def execute(self, linebuffer):
+    def execute(self, linebuffer: str):
         """Executes action of a Token matching the linebuffer"""
         args = re.split(r"\s+", linebuffer.strip())
         last = args[len(args) - 1]
@@ -203,8 +230,8 @@ class CLI:
         if not token.action or not token.match(last):
             # Token to be executed must have action, and
             # the last argument must match the last token.
-            self.print(f"  {linebuffer} < invalid syntax")
-            self.print("", flush=True)
+            self._pr(f"  {linebuffer} < invalid syntax")
+            self._pr("", flush=True)
             return
 
         token.action(self.private, args)
@@ -227,12 +254,12 @@ class CLI:
         while True:
             try:
                 line = input("{} ".format(self.prompt))
-                self.print("")
+                self._pr("")
                 self.execute(line)
 
             except KeyboardInterrupt:
-                self.print("")
-                self.print("")
+                self._pr("")
+                self._pr("")
                 continue
 
             except EOFError:

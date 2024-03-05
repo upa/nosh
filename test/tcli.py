@@ -19,7 +19,7 @@ def act_test_ng(priv: Any, args: list[str]):
 
 def act_edit_test(priv: Any, args: list[str]):
     c: CLI = priv
-    c.set_prefix(1, ["edit-test"])
+    c.set_prefix(["edit-test"])
 
 
 def act_top(priv: Any, args: list[str]):
