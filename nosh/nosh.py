@@ -6,7 +6,7 @@ import re
 import sys
 import readline
 
-from nosh.token import Token, TextToken
+from .token import Token, TextToken
 
 
 def instantiate(tree: dict) -> Token:
