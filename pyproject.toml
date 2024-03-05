@@ -1,16 +1,11 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["nosh"]
-exclude = []
-
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
 
 [project]
 name = "nosh"
 version = "0.0.0"
+description = "Nosh is a libarry to implement CLI for networking devices"
 authors = [
         { name = "Ryo Nakamura", email = "upa@haeena.net" },
 ]
