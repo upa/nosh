@@ -1,7 +1,7 @@
 
-# Nosh: A Library to Implement CLI for Networking Devices
+# Nosh: Library to Implement CLIs for Networking Devices
 
-Nosh is not a shell, but for a minimal python library to simply and
+Nosh is not a shell, but a minimal python library to simply and
 intuitively implement Character Line Interfaces (CLIs) for networking
 devices.
 
