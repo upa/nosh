@@ -5,6 +5,10 @@ Nosh is not a shell, but for a minimal python library to simply and
 intuitively implement Character Line Interfaces (CLIs) for networking
 devices.
 
+
+https://github.com/upa/nosh/assets/184632/347339e0-35fc-418e-ade2-0a03b45ff61b
+
+
 ## Install
 
 ```shell-session
