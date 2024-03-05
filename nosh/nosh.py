@@ -65,6 +65,7 @@ class CLI:
     :param debug: Enable debug output.
 
     """
+
     def __init__(
         self,
         prompt_cb: Callable[[], str] | None = None,
@@ -119,15 +120,7 @@ class CLI:
         consists of String and `Token` classes, e.g., InterfaceToken.
 
         """
-        token = self.root
-        for idx, text in enumerate(path):
-            next_token = token.find_leaf(text)
-            if not next_token:
-                if idx < (len(path) - 1):
-                    raise ValueError(f"no token path '{path}'")
-                break
-            token = next_token
-        return token
+        return self.root.find(path)
 
     def append(self, *args: Token):
         """Appends Token(s) to the top of this CLI."""

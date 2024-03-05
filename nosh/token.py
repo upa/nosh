@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Callable, Any
+from typing import Callable, Any, Type
 
 import re
 import ipaddress
@@ -9,8 +9,7 @@ import ifaddr
 
 
 class Token(ABC):
-    """Abstract class for Token classes.
-    """
+    """Abstract class for Token classes."""
 
     @property
     @abstractmethod
@@ -61,7 +60,10 @@ class Token(ABC):
         class), from leaf Tokens, otherwise None.
 
         """
-        
+        pass
+
+    def find(self, path: list[str | Type[Token]]) -> Token:
+        """Return Token exactry matching `path` under this token."""
         pass
 
 
@@ -171,6 +173,22 @@ class BasicToken(Token):
             if type(leaf) == p:
                 return leaf
         return None
+
+    def find(self, path: list[str | Type[Token]]) -> Token:
+        """Retruns the Token exactry matching `path` under this
+        token. `path` can consists of String and `Token` classes,
+        e.g., InterfaceToken.
+
+        """
+        token = self
+        for idx, text in enumerate(path):
+            next_token = token.find_leaf(text)
+            if not next_token:
+                if idx < (len(path) - 1):
+                    raise ValueError(f"no token found for '{path}'")
+                break
+            token = next_token
+        return token
 
 
 class TextToken(BasicToken):

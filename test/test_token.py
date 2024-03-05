@@ -29,7 +29,7 @@ def test_make_valid_token(cls, kwargs):
 
 param_make_invalid_token = [
     (TextToken, {}),  # must have text
-    (TextToken, {"text": "text", "mark": "<mark>"}), # must not have mark
+    (TextToken, {"text": "text", "mark": "<mark>"}),  # must not have mark
     (InterfaceToken, {"text": "invalid"}),  # must not have text
     (StringToken, {"text": "text", "mark": "<string>"}),  # must not have text
     (StringToken, {}),  # must have mark
@@ -77,3 +77,23 @@ def test_token_match(cls, kwargs, ok, ng):
 
     for m in ng:
         assert not token.match(m)
+
+
+def test_token_find():
+    t0 = TextToken(text="root")
+    t1 = TextToken(text="t1")
+    t2 = TextToken(text="t2")
+    s1 = StringToken(mark="<str>")
+    t3 = TextToken(text="t3")
+    i1 = InterfaceToken()
+
+    t0.append(t1)
+    t1.append(t2)
+    t2.append(s1)
+    s1.append(t3)
+    t3.append(i1)
+
+    assert t0.find(["t1"]) == t1
+    assert t0.find(["t1", "t2"]) == t2
+    assert t0.find(["t1", "t2", StringToken]) == s1
+    assert t0.find(["t1", "t2", StringToken, "t3"]) == t3
