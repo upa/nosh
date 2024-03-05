@@ -1,8 +1,17 @@
 
-# Nosh is Not a Shell
+# Nosh: A Library to Implement CLI for Networking Devices
 
-Nosh is a minimal python library to implement Character Line
-Interfaces (CLIs) for networking devices.
+Nosh is not a shell, but for a minimal python library to simply and
+intuitively implement Character Line Interfaces (CLIs) for networking
+devices.
+
+## Install
+
+```shell-session
+git clone https://github.com/upa/nosh
+cd nosh
+pip install .
+```
 
 ## Nosh Basics
 
@@ -35,7 +44,11 @@ Completions:
   lo
 ```
 
-We call this possible completions *descriptions*.
+We call this possible completions *descriptions*. A completion with
+form `<mark>` is called `mark`. Mark indicates what this token
+requires (interface name in this case), but itself is not for the
+input completion (`<interface-name>` is not inserted to line buffer
+even when input is `<inte`).
 
 
 Nosh provides Token classes to implement command lines, for example:
@@ -134,9 +147,8 @@ least.
 
 `completion_candidates()` receives `text`, which is a input token, and
 returns list of possible completions as `list[tuple("text",
-"description")]`. Not that `text` with the format `<.*>` (called
-*mark* in the nosh implementation) appear in only descriptions, and
-ignored from the completion.
+"description")]`. Not that `text` with the mark format `<.*>` appear
+in only descriptions, and ignored from input completion.
 
 `match()` function returns `True` if the argument `text` **exactly**
 matches this token, otherwise False.
