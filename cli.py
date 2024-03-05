@@ -268,7 +268,7 @@ def main():
     tn = nosh.instantiate(ping_target_token)
 
     cli.append(pn)
-    pn.append(cn, wn, tn)
+    pn.append(tn, cn, wn)
     tn.append(cn, wn)
 
     cli.insert(["ping", "count", IntToken], wn, tn)

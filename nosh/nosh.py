@@ -131,7 +131,7 @@ class CLI:
         the `path`.
 
         """
-        last = self.find(path)
+        last = self.root.find(path)
         last.append(*tokens)
 
     def set_prefix(self, prefix: list[str]):

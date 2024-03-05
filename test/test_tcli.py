@@ -57,6 +57,7 @@ def test_full_comlete_texttoken():
     out = build_completion_output(
         [
             ("edit", "edit test: insert edit-test"),
+            ("ping", "ping to remote host"),
             ("set", "desc set"),
             ("show", "desc show"),
             ("top", "clear edit prefix"),
@@ -118,3 +119,11 @@ def test_set_prefix():
     cli.clear_prefix()
     test_complete_at_1st_level()
     test_complete_at_2nd_level()
+
+
+def test_text_has_evaluated_before_string():
+
+    out = (build_completion_output([("<count>", "Integer")])) + "ping count "
+    clear_sio()
+    assert cli.complete("ping count ", "", 0) == None
+    assert sio.getvalue() == out

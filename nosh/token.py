@@ -23,6 +23,15 @@ class Token(ABC):
         """Retrun text."""
         pass
 
+    @property
+    @abstractmethod
+    def priority(self) -> int:
+        """Rreturn priority in int. lower priority token in leaves is
+        evaluated in advance
+
+        """
+        pass
+
     @abstractmethod
     def complete(self, text: str, visited: list[Token]) -> list[tuple[str, str]]:
         """Return candidates, list of ("text", "desc"), for completion
@@ -66,6 +75,11 @@ class Token(ABC):
         """Return Token exactry matching `path` under this token."""
         pass
 
+    def insert(self, path: list[str | Type[Token]], *tokens: Token):
+        """Inserts Token(s) as leaves of the Token exactily matching
+        the `path`."""
+        pass
+
 
 class BasicToken(Token):
     """Basic Token is a super class for a cli token. Concrete Token
@@ -106,6 +120,10 @@ class BasicToken(Token):
         if self._action:
             return self._action
         return None
+
+    @property
+    def priority(self) -> int:
+        return 100
 
     @classmethod
     def must_have(cls, key: str, kwargs: dict):
@@ -153,6 +171,7 @@ class BasicToken(Token):
         """Appends leaf tokens"""
         for arg in args:
             self.leaves.append(arg)
+        self.leaves.sort(key=lambda token: token.priority)
 
     def match_leaf(self, text: str) -> Token | None:
         """returns leaf Token most matching text"""
@@ -190,6 +209,12 @@ class BasicToken(Token):
             token = next_token
         return token
 
+    def insert(self, path: list[str | Type[Token]], *tokens: Token):
+        """Inserts Token(s) as leaves of the Token exactily matching
+        the `path`."""
+        last = self.find(path)
+        last.append(*tokens)
+
 
 class TextToken(BasicToken):
     """Token representing a static text.
@@ -204,6 +229,10 @@ class TextToken(BasicToken):
 
     def __str__(self):
         return self.text
+
+    @property
+    def priority(self) -> int:
+        return 50  # texttoken must be evaluated before other Tokens, e.g., StringToken
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
         candidates: list[tuple[str, str]] = []

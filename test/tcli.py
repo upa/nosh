@@ -116,6 +116,59 @@ top_tree = {
     "action": act_top,
 }
 
+ping = instantiate(
+    {
+        "class": TextToken,
+        "text": "ping",
+        "desc": "ping to remote host",
+        "leaves": [
+            {
+                "class": StringToken,
+                "mark": "<remote>",
+                "desc": "Ping target",
+                "action": act_test_ok,
+            },
+        ],
+    }
+)
+
+count = instantiate(
+    {
+        "class": TextToken,
+        "text": "count",
+        "desc": "Number of ping requests to be sent",
+        "leaves": [
+            {
+                "class": IntToken,
+                "mark": "<count>",
+                "action": act_test_ok,
+            }
+        ],
+    }
+)
+
+wait = instantiate(
+    {
+        "class": TextToken,
+        "text": "wait",
+        "desc": "Wai time (seconds)",
+        "leaves": [
+            {
+                "class": IntToken,
+                "mark": "<secounds>",
+                "action": act_test_ok,
+            },
+        ],
+    }
+)
+
+
+ping.append(count, wait)
+target = ping.find([StringToken])
+count.insert([IntToken], target, wait)
+wait.insert([IntToken], target, count)
+
+
 sio = io.StringIO()
 cli = CLI(file=sio, private=sio)
 cli.append(
@@ -124,6 +177,7 @@ cli.append(
     instantiate(edit_tree),
     instantiate(top_tree),
 )
+cli.append(ping)
 
 
 if __name__ == "__main__":
