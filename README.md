@@ -10,7 +10,7 @@ devices.
 ```shell-session
 git clone https://github.com/upa/nosh
 cd nosh
-pip install .
+flit install
 ```
 
 ## Nosh Basics
