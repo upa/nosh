@@ -28,12 +28,12 @@ set interfaces eth0 address 10.0.0.1/24
 
 `set`, `interfaces`, `eth0`, `address`, and `10.0.0.1/24`, are tokens.
 Each token has one or more leaf tokens and may have `action`.  In this
-example, token `set` may have leaf tokens of `firewall`, `system`, and
-`vlans`. Token `10.0.0.1/24` may have an action that assign the
-address to an interface.
+example, token `set` may have leaf tokens of `firewall`, `system`,
+`vlans`, and so on. Token `10.0.0.1/24` may have an action that
+assigns the address to an interface.
 
 You usually type `tab`, `space`, or `?` to print possible completions
-with descriptions. If you do this with the exaxmple command line `set
+with descriptions. If you do this with the example command line `set
 interfaces`, the CLI shows like:
 
 ```
