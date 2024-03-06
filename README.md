@@ -27,10 +27,10 @@ set interfaces eth0 address 10.0.0.1/24
 ```
 
 `set`, `interfaces`, `eth0`, `address`, and `10.0.0.1/24`, are tokens.
-Each token has one or more leaf tokens and may have `action`.  In this
-example, token `set` may have leaf tokens of `firewall`, `system`,
-`vlans`, and so on. Token `10.0.0.1/24` may have an action that
-assigns the address to an interface.
+Each token may have one or more leaf tokens and may have `action`. In
+this example, token `set` may have leaf tokens of `firewall`,
+`system`, `vlans`, and so on. Token `10.0.0.1/24` would have no leaves
+but have an action that assigns the address to an interface.
 
 You usually type `tab`, `space`, or `?` to print possible completions
 with descriptions. If you do this with the example command line `set
@@ -49,10 +49,12 @@ Completions:
 ```
 
 We call this output of possible completions and their help strings
-*descriptions*. A completion with form `<mark>` is called `mark`. Mark
-indicates what this token requires (interface name in this case), but
-itself is not for the input completion (`<interface-name>` is not
-inserted to line buffer even when input is `<inte`).
+*descriptions*. A completion with the form `<.*>` is called
+`mark`. Mark indicates what this token requires (interface name in
+this case), but itself is not for the input completion;
+`<interface-name>` is not inserted to the line buffer even when input
+is `<inte`, unlike input `et` that shows possible completions `eth0`,
+`eth1`, `eth2`, and `eth3`.
 
 
 Nosh provides Token classes to implement command lines, for example:
@@ -75,7 +77,7 @@ and `InterfaceAddressToken`.
 
 Let's implement it as a CLI:
 
-```
+```python
 from nosh import CLI, TextToken, InterfaceToken, InterfaceAddressToken
 
 tk_set = TextToken(text="set", desc="Set parameters")
@@ -96,7 +98,8 @@ cli.cli()
 
 This script starts your CLI that accepts the command line `set
 interfaces eth0 address 10.0.0.1/24` (`eth0` may differ depending on
-your environment).
+your environment, and IP addresses other than `10.0.0.1/24` are also
+acceptable).
 
 ```
 > set interfaces eth0 
@@ -112,8 +115,8 @@ Completions:
 > set interfaces eth0 address 10.0.0.1/24
 
 ['set', 'interfaces', 'eth0', 'address', '10.0.0.1/24']
-> 
 
+> 
 ```
 
 ## More examples
@@ -136,12 +139,12 @@ We have implemented following token classes:
   with prefix length.
   
 
-## Implement your Token class
+### Implement Your Token Class
 
 You may want to implement new completions for specific cases depending
-on configuration backend. For example, `<route-map>` token would give
-a list of already-defined route-maps in a configuration as possible
-completions. To do this, implement your own Token class.
+on a configuration backend. For example, `<route-map>` token would
+give a list of already-defined route-maps in a configuration as
+possible completions. To do this, implement your own Token class.
 
 InterfaceToken class in [nosh/token.py](/nosh/token.py) may help you.
 
@@ -151,15 +154,15 @@ least.
 
 `completion_candidates()` receives `text`, which is a input token, and
 returns list of possible completions as `list[tuple("text",
-"description")]`. Not that `text` with the mark format `<.*>` appear
-in only descriptions, and ignored from input completion.
+"description")]`. Note that `text` with the mark format `<.*>` appears
+in only descriptions, and is ignored for input completion.
 
 `match()` function returns `True` if the argument `text` **exactly**
-matches this token, otherwise False.
+matches this token, otherwise `False`.
 
 
   
-## Configuration backend
+## Configuration Backend
 
 Nosh has **no configuration backend**. It is a library to implement
 command line **interfaces**. You can implement your own configuration
