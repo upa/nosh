@@ -1,0 +1,13 @@
+Source: nosh
+Section: net
+Priority: optional
+Maintainer: Ryo Nakamura <upa@haeena.net>
+Build-Depends: debhelper (>= 10~), python3, dh-python, pybuild-plugin-pyproject
+Homepage: https://github.com/upa/nosh
+Standards-Version: 4.5.0.3
+
+
+Package: nosh
+Architecture: linux-any
+Depends: libreadline8, python3-ifaddr
+Description: Nosh: Library to Implement CLIs for Networking Devices
