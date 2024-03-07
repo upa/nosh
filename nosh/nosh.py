@@ -228,11 +228,12 @@ class CLI:
         token.action(self.private, args)
         self._pr("", flush=True)
 
-    def setup(self):
-        """Setup readline completer and parse_and_bind. Call this
+    def start(self):
+        """Start readline completer and parse_and_bind. Call this
         function of other CLI instances overwrites completions. It
         whould enable changing modes (global <-> configure), for
         example.
+
         """
         readline.set_completer_delims(" ")
         readline.set_completer(self.complete_readline)
@@ -240,9 +241,13 @@ class CLI:
         readline.parse_and_bind("space: complete")
         readline.parse_and_bind("?: complete")
 
+    def stop(self):
+        """Stop completions"""
+        readline.set_completer(None)
+
     def cli(self):
         """Start to emulates shell interactions."""
-        self.setup()
+        self.start()
         while True:
             try:
                 line = input("{} ".format(self.prompt))
