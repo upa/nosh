@@ -48,7 +48,7 @@ def build_completion_output(candidates: list[tuple[str, str]]) -> str:
     o = ""
     o += "\n"
     o += "\n"
-    o += "Completions:\n"
+    o += "Possible completions:\n"
     for v, h in candidates:
         o += "  {:16} {}\n".format(v, h)
     o += "\n"

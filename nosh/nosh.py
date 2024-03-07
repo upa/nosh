@@ -189,7 +189,7 @@ class CLI:
 
         if text == "":
             self._pr("\n")
-            self._pr("Completions:")
+            self._pr("Possible completions:")
             for v, h in sorted(candidates, key=lambda x: x[0]):
                 self._pr("  {:16} {}".format(v, h))
             newbuffer = "\n{} {}".format(self.prompt, linebuffer)
