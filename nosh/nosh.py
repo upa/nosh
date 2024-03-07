@@ -264,4 +264,5 @@ class CLI:
                 continue
 
             except EOFError:
+                self._pr("")
                 break
