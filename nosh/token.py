@@ -413,9 +413,58 @@ class InterfaceAddressToken(BasicToken):
 
         if not "/" in text:
             return False
-
         try:
             ipaddress.ip_interface(text)
+            return True
+        except ValueError:
+            return False
+
+
+class IPv4NetworkToken(BasicToken):
+    """Token representing IPv4Address."""
+
+    def __init__(self, **kwargs):
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<ipv4network/preflen>")
+        kwargs.setdefault("desc", "IPv4 network address")
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        return "<IPv4Network>"
+
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
+        return [(self.mark, self.desc)]
+
+    def match(self, text: str) -> bool:
+        if not "/" in text:
+            return False
+        try:
+            ipaddress.IPv4Network(text)
+            return True
+        except ValueError:
+            return False
+
+
+class IPv6NetworkToken(BasicToken):
+    """Token representing IPv6Address."""
+
+    def __init__(self, **kwargs):
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<ipv6network/preflen>")
+        kwargs.setdefault("desc", "IPv6 network address")
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        return "<IPv6Network>"
+
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
+        return [(self.mark, self.desc)]
+
+    def match(self, text: str) -> bool:
+        if not "/" in text:
+            return False
+        try:
+            ipaddress.IPv6Network(text)
             return True
         except ValueError:
             return False

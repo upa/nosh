@@ -8,6 +8,8 @@ from nosh.token import (
     IPv4AddressToken,
     IPv6AddressToken,
     InterfaceAddressToken,
+    IPv4NetworkToken,
+    IPv6NetworkToken,
 )
 
 
@@ -19,6 +21,8 @@ param_make_valid_token = [
     (IPv4AddressToken, {}),
     (IPv6AddressToken, {}),
     (InterfaceAddressToken, {}),
+    (IPv4NetworkToken, {}),
+    (IPv6NetworkToken, {}),
 ]
 
 
@@ -37,6 +41,8 @@ param_make_invalid_token = [
     (IPv4AddressToken, {"text": "text"}),  # must not have text
     (IPv6AddressToken, {"text": "text"}),  # must not have text
     (InterfaceAddressToken, {"text": "text"}),  # must not have text
+    (IPv4NetworkToken, {"text": "text"}),  # must not have text
+    (IPv6NetworkToken, {"text": "text"}),  # must not have text
 ]
 
 
@@ -65,6 +71,24 @@ param_match_test = [
         ["10", "0", "-1"],
         ["asdf", "a10"],
     ),
+    (
+        InterfaceAddressToken,
+        {},
+        ["10.0.0.1/24", "10.0.0.0/24", "fe80::1/64", "2001:db8::1/128"],
+        ["10.0.0.0", "2001:db8::1", "asdf"],
+    ),
+    (
+        IPv4NetworkToken,
+        {},
+        ["10.0.0.0/24"],
+        ["10.0.0.0", "10.0.0.1/24", "2001:db8::1", "2001:db8::1/64", "asdf"],
+    ),
+    (
+        IPv6NetworkToken,
+        {},
+        ["2001:db8::/64"],
+        ["10.0.0.0", "10.0.0.1/24", "2001:db8::1", "2001:db8::1/64", "asdf"],
+    ),
 ]
 
 
@@ -73,9 +97,11 @@ def test_token_match(cls, kwargs, ok, ng):
     token = cls(**kwargs)
 
     for m in ok:
+        print(f"ok: {m}")
         assert token.match(m)
 
     for m in ng:
+        print(f"ng: {m}")
         assert not token.match(m)
 
 
