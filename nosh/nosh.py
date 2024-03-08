@@ -284,3 +284,8 @@ class CLI:
             except EOFError:
                 self._pr("")
                 break
+
+            except Exception as e:
+                self._pr(f"CLI Catch Error: {e}")
+                self._pr("")
+                continue
