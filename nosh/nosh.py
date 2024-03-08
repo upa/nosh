@@ -154,6 +154,7 @@ class CLI:
 
     def insert_prefix(self, path: list[str]) -> list[str]:
         """Return self.prefix into path"""
+        # if self.prefix and 0 < len(path) and path[0]:
         if self.prefix and 1 < len(path):
             new_path = path[:1] + self.prefix + path[1:]
             if self.debug:
@@ -168,17 +169,16 @@ class CLI:
 
     def complete(self, linebuffer: str, text: str, state: int) -> str | None:
         """The actual completer for readline."""
-        path = re.split(r"\s+", linebuffer)
-
         if self.debug:
             print()
             print(f"linebuffer: '{linebuffer}'")
             print(f"text:       '{text}'")
             print(f"state:      '{state}'")
             print(f"prefix:     '{self.prefix}'")
-            print(f"path:       '{path}'")
 
-        path = self.insert_prefix(path)
+        path = self.insert_prefix(re.split(r"\s+", linebuffer))
+        if self.debug:
+            print(f"path:       '{path}'")
 
         try:
             token, visited = self.longest_match(path)
@@ -222,15 +222,17 @@ class CLI:
 
     def execute(self, linebuffer: str):
         """Executes action of a Token matching the linebuffer"""
-        args = re.split(r"\s+", linebuffer.strip())
-        args = self.insert_prefix(args)
-        last = args[len(args) - 1]
+        args = self.insert_prefix(re.split(r"\s+", linebuffer))
+        if len(args) > 1 and args[len(args) - 1] == "":
+            args.pop()  # remove the last "" to get
+
         token, _ = self.longest_match(args)
 
         if token == self.root and linebuffer.strip() == "":
             # empty linebuffer.
             return
 
+        last = args[len(args) - 1]
         if not token.action or not token.match(last):
             # Token to be executed must have action, and
             # the last argument must match the last token.
