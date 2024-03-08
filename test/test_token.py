@@ -20,6 +20,7 @@ param_make_valid_token = [
     (StringToken, {"mark": "<string>"}),
     (StringToken, {"mark": "<string>", "regex": r".[a-zA-Z]"}),
     (IntToken, {}),
+    (IntToken, {"range": (1, 10)}),
     (IPv4AddressToken, {}),
     (IPv6AddressToken, {}),
     (InterfaceAddressToken, {}),
@@ -41,6 +42,8 @@ param_make_invalid_token = [
     (StringToken, {"text": "text", "mark": "<string>"}),  # must not have text
     (StringToken, {}),  # must have mark
     (IntToken, {"text": "text"}),  # must not have text
+    (IntToken, {"range": "not-tuple"}),  # range must be tuple[int, int]
+    (IntToken, {"range": ()}),  # range must be tuple[int, int]
     (IPv4AddressToken, {"text": "text"}),  # must not have text
     (IPv6AddressToken, {"text": "text"}),  # must not have text
     (InterfaceAddressToken, {"text": "text"}),  # must not have text
@@ -148,7 +151,7 @@ def test_token_find():
     assert t0.find(["t1", "t2", StringToken, "t3"]) == t3
 
 
-def test_string_token():
+def test_string_token_regex():
     t = StringToken(mark="<mark>")
     assert t.match("asdf")
     assert t.match("asdf/.-")
@@ -157,6 +160,14 @@ def test_string_token():
     t = StringToken(mark="<mark>", regex=r"^[a-z,]$")
     assert not t.match("comma,")
     assert not t.match("X")
+
+
+def test_int_token_range():
+    t = IntToken(range=(1, 10))
+    assert t.match("1")
+    assert t.match("10")
+    assert not t.match("0")
+    assert not t.match("11")
 
 
 def test_choice_token_completion():

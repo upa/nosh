@@ -337,7 +337,10 @@ class StringToken(BasicToken):
 class IntToken(BasicToken):
     """Token representing integer.
 
-    IntToekn must not have `text`. It have mark ``<int>`` by default.
+    IntToken accpets `range` argument, which is tuple of (min, max)
+    value.  If the range is specified, match() returns False if the
+    text value is out of the range (gt or lt). IntToken must not have
+    `text`. It have mark ``<int>`` by default.
 
     """
 
@@ -345,6 +348,13 @@ class IntToken(BasicToken):
         self.must_not_have("text", kwargs)
         kwargs.setdefault("mark", "<int>")
         kwargs.setdefault("desc", "Integer")
+        if "range" in kwargs:
+            self.range = kwargs["range"]
+            del kwargs["range"]
+            if not isinstance(self.range, tuple) or len(self.range) != 2:
+                raise ValueError("range must be tuple (min, max)")
+        else:
+            self.range = None
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -355,7 +365,9 @@ class IntToken(BasicToken):
 
     def match(self, text: str) -> bool:
         try:
-            int(text)
+            v = int(text)
+            if self.range and (v < self.range[0] or self.range[1] < v):
+                return False
             return True
         except ValueError:
             return False
