@@ -33,6 +33,12 @@ class Token(ABC):
         """
         pass
 
+    @property
+    @abstractmethod
+    def leaves(self) -> list[Token]:
+        """Return list of leaf tokens"""
+        pass
+
     @abstractmethod
     def complete(self, text: str, visited: list[Token]) -> list[tuple[str, str]]:
         """Return candidates, list of ("text", "desc"), for completion
@@ -103,7 +109,7 @@ class BasicToken(Token):
         self._text = text
         self.mark = mark
         self.desc = desc
-        self.leaves: list[Token] = []
+        self._leaves: list[Token] = []
         self._action = action
 
         if self.mark and not re.match(r"<.*>", self.mark):
@@ -125,6 +131,10 @@ class BasicToken(Token):
     @property
     def priority(self) -> int:
         return 100
+
+    @property
+    def leaves(self) -> list[Token]:
+        return self._leaves
 
     @classmethod
     def must_have(cls, key: str, kwargs: dict):

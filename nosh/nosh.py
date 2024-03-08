@@ -145,6 +145,10 @@ class CLI:
         """
         self.prefix = prefix
 
+    def get_prefix(self) -> list[str]:
+        """Returns prefix"""
+        return self.prefix
+
     def clear_prefix(self):
         """Clear `prefix`."""
         self.prefix = []
