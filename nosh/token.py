@@ -505,6 +505,13 @@ class ChoiceToken(BasicToken):
         return f"<Choice:{self.choices}>"
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
+
+        if len(text) > 0:
+            matched = list(filter(lambda x: x.startswith(text), self.choices))
+            if len(matched) == 1:
+                # we have one candidate, return it as the candidate.
+                return [(matched[0], "")]
+
         return [(self.mark, self.desc)]
 
     def match(self, text: str) -> bool:

@@ -171,7 +171,7 @@ wait = instantiate(
     {
         "class": TextToken,
         "text": "wait",
-        "desc": "Wai time (seconds)",
+        "desc": "Wait time (seconds)",
         "leaves": [
             {
                 "class": IntToken,
@@ -187,7 +187,6 @@ ping.append(count, wait)
 target = ping.find([StringToken])
 count.insert([IntToken], target, wait)
 wait.insert([IntToken], target, count)
-
 
 sio = io.StringIO()
 cli = CLI(file=sio)

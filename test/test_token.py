@@ -157,3 +157,12 @@ def test_string_token():
     t = StringToken(mark="<mark>", regex=r"^[a-z,]$")
     assert not t.match("comma,")
     assert not t.match("X")
+
+
+def test_choice_token_completion():
+    t = ChoiceToken(
+        choices=["asdf", "qwer"],
+    )
+    assert t.completion_candidates("") == [(t.mark, t.desc)]
+    assert t.completion_candidates("a") == [("asdf", "")]
+    assert t.completion_candidates("q") == [("qwer", "")]
