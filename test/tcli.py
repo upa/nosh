@@ -4,13 +4,16 @@
 
 import argparse
 import io
+import sys
+
+sys.path.insert(0, ".")
 
 from nosh import *
 
 
 def act_test_ok(priv: Any, args: list[str]):
-    out: TextIO = priv
-    out.write(" ".join(args))
+    c: CLI = priv
+    c.file.write(" ".join(args))
 
 
 def act_test_ng(priv: Any, args: list[str]):
@@ -94,9 +97,24 @@ set_tree = {
             "class": TextToken,
             "text": "edit-test",
             "leaves": [
-                {"class": TextToken, "text": "test1", "desc": "test1-desc"},
-                {"class": TextToken, "text": "test2", "desc": "test2-desc"},
-                {"class": TextToken, "text": "test3", "desc": "test3-desc"},
+                {
+                    "class": TextToken,
+                    "text": "test1",
+                    "desc": "test1-desc",
+                    "action": act_test_ok,
+                },
+                {
+                    "class": TextToken,
+                    "text": "test2",
+                    "desc": "test2-desc",
+                    "action": act_test_ok,
+                },
+                {
+                    "class": TextToken,
+                    "text": "test3",
+                    "desc": "test3-desc",
+                    "action": act_test_ok,
+                },
             ],
         },
     ],
@@ -170,14 +188,15 @@ wait.insert([IntToken], target, count)
 
 
 sio = io.StringIO()
-cli = CLI(file=sio, private=sio)
+cli = CLI(file=sio)
 cli.append(
     instantiate(show_tree),
     instantiate(set_tree),
     instantiate(edit_tree),
     instantiate(top_tree),
+    ping,
 )
-cli.append(ping)
+cli.private = cli
 
 
 if __name__ == "__main__":
@@ -188,5 +207,4 @@ if __name__ == "__main__":
 
     cli.file = sys.stdout
     cli.debug = args.debug
-    cli.private = cli
     cli.cli()

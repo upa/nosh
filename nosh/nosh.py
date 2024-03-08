@@ -80,10 +80,9 @@ class CLI:
         self.private = private
         self.debug = debug
 
-        # prefix acehives `edit`. If prefix_insert_index > 0,
-        # self.prefix is inserted into the path with the index.
+        # prefix acehives `edit`. if len(self.prefix) > 0, self.prefix
+        # is inserted into the path with the index.
         self.prefix: list[str] = []
-        self.prefix_insert_index = 0
 
     def _pr(self, msg, **kwargs):
         print(msg, file=self.file, **kwargs)
@@ -153,6 +152,16 @@ class CLI:
         """Clear `prefix`."""
         self.prefix = []
 
+    def insert_prefix(self, path: list[str]) -> list[str]:
+        """Return self.prefix into path"""
+        if self.prefix and 1 < len(path):
+            new_path = path[:1] + self.prefix + path[1:]
+            if self.debug:
+                print(f"---prefix inserted---")
+                print(f"path:       '{path}'")
+            return new_path
+        return path
+
     def complete_readline(self, text: str, state: int):
         """Wrapper to be called from readline."""
         return self.complete(readline.get_line_buffer(), text, state)
@@ -169,11 +178,8 @@ class CLI:
             print(f"prefix:     '{self.prefix}'")
             print(f"path:       '{path}'")
 
-        if linebuffer and self.prefix and 1 < len(path):
-            path = path[:1] + self.prefix + path[1:]
-            if self.debug:
-                print(f"---prefix inserted---")
-                print(f"path:       '{path}'")
+        path = self.insert_prefix(path)
+
         try:
             token, visited = self.longest_match(path)
         except SyntaxError as e:
@@ -217,6 +223,7 @@ class CLI:
     def execute(self, linebuffer: str):
         """Executes action of a Token matching the linebuffer"""
         args = re.split(r"\s+", linebuffer.strip())
+        args = self.insert_prefix(args)
         last = args[len(args) - 1]
         token, _ = self.longest_match(args)
 

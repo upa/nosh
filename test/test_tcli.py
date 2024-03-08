@@ -121,6 +121,12 @@ def test_set_prefix():
     assert cli.complete("set ", "", 0) == None
     assert sio.getvalue() == out
     test_complete_at_1st_level()
+
+    # prefix must be inserted into args passed to action
+    clear_sio()
+    cli.execute("set test1")
+    assert "set edit-test test1" in sio.getvalue()
+
     cli.clear_prefix()
     test_complete_at_1st_level()
     test_complete_at_2nd_level()
