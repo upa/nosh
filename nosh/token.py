@@ -230,7 +230,7 @@ class BasicToken(Token):
 class TextToken(BasicToken):
     """Token representing a static text.
 
-    TextToken must have `text` and not have `mark`.
+    TextToken must have `text` and not have `mark` arguments.
     """
 
     def __init__(self, **kwargs):
@@ -307,7 +307,8 @@ class StringToken(BasicToken):
 
     StringToken must not have `text`. Instead, it must have `mark`.
     For example. StringToken under TextToken(``route-map``) would have
-    `mark` ``<route-map>``.
+    `mark` ``<route-map>``. `regex` argument overrides regex for
+    match().
 
     """
 
@@ -483,3 +484,30 @@ class IPv6NetworkToken(BasicToken):
             return True
         except ValueError:
             return False
+
+
+class ChoiceToken(BasicToken):
+    """Token represnting choices. `choices` list[str] argument is
+    required."""
+
+    def __init__(self, **kwargs):
+        self.must_not_have("text", kwargs)
+        self.must_have("choices", kwargs)
+        if not isinstance(kwargs["choices"], list):
+            raise ValueError("choices must be list")
+        self.choices = kwargs["choices"]
+        del kwargs["choices"]
+        kwargs.setdefault("mark", "<choice>")
+        kwargs.setdefault("desc", "Choice from {}".format(", ".join(self.choices)))
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        return f"<Choice:{self.choices}>"
+
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
+        return [(self.mark, self.desc)]
+
+    def match(self, text: str) -> bool:
+        if text in self.choices:
+            return True
+        return False

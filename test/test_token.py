@@ -10,6 +10,7 @@ from nosh.token import (
     InterfaceAddressToken,
     IPv4NetworkToken,
     IPv6NetworkToken,
+    ChoiceToken,
 )
 
 
@@ -24,6 +25,7 @@ param_make_valid_token = [
     (InterfaceAddressToken, {}),
     (IPv4NetworkToken, {}),
     (IPv6NetworkToken, {}),
+    (ChoiceToken, {"choices": ["choice1", "choice2"]}),
 ]
 
 
@@ -44,6 +46,8 @@ param_make_invalid_token = [
     (InterfaceAddressToken, {"text": "text"}),  # must not have text
     (IPv4NetworkToken, {"text": "text"}),  # must not have text
     (IPv6NetworkToken, {"text": "text"}),  # must not have text
+    (ChoiceToken, {"text": "text"}),  # must not have text
+    (ChoiceToken, {}),  # must have choices
 ]
 
 
@@ -55,10 +59,10 @@ def test_make_invalid_token(cls, kwargs):
 
 param_match_test = [
     (
-        TextToken,
-        {"text": "text"},
-        ["text"],
-        [],
+        TextToken,  # class
+        {"text": "text"},  # arguments for class
+        ["text"],  # match ok
+        [],  # match ng
     ),
     (
         StringToken,
@@ -89,6 +93,12 @@ param_match_test = [
         {},
         ["2001:db8::/64"],
         ["10.0.0.0", "10.0.0.1/24", "2001:db8::1", "2001:db8::1/64", "asdf"],
+    ),
+    (
+        ChoiceToken,
+        {"choices": ["choice1", "choice2"]},
+        ["choice1", "choice2"],
+        ["choice", "not match"],
     ),
 ]
 

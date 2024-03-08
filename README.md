@@ -137,6 +137,9 @@ We have implemented following token classes:
 * `IPv6AddressToken`: representing an IPv6 Address.
 * `InterfaceAddressToken`: representing an IP (both v4 and v6) address
   with prefix length.
+* `IPv4NetworkToken`: representing an IPv4 network address.
+* `IPv6NetworkToken`: representing and IPv6 network address.
+* `ChoiceToken`: representing choice from static texts.
   
 
 ### Implement Your Token Class
