@@ -54,6 +54,7 @@ set_tree = {
     "class": TextToken,
     "text": "set",
     "desc": "desc set",
+    "action": act_test_ok,
     "leaves": [
         {
             "class": TextToken,
@@ -96,6 +97,7 @@ set_tree = {
         {
             "class": TextToken,
             "text": "edit-test",
+            "action": act_test_ok,
             "leaves": [
                 {
                     "class": TextToken,

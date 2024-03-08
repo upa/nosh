@@ -152,10 +152,9 @@ class CLI:
         """Clear `prefix`."""
         self.prefix = []
 
-    def insert_prefix(self, path: list[str]) -> list[str]:
+    def insert_prefix(self, path: list[str], force: bool = False) -> list[str]:
         """Return self.prefix into path"""
-        # if self.prefix and 0 < len(path) and path[0]:
-        if self.prefix and 1 < len(path):
+        if self.prefix and (force or 1 < len(path)):
             new_path = path[:1] + self.prefix + path[1:]
             if self.debug:
                 print(f"---prefix inserted---")
@@ -222,10 +221,14 @@ class CLI:
 
     def execute(self, linebuffer: str):
         """Executes action of a Token matching the linebuffer"""
-        args = self.insert_prefix(re.split(r"\s+", linebuffer))
-        if len(args) > 1 and args[len(args) - 1] == "":
-            args.pop()  # remove the last "" to get
+        args = re.split(r"\s+", linebuffer)
 
+        first = self.root.match_leaf(args[0])
+        if not first:
+            # first token is invalid
+            raise SyntaxError(f"{linebuffer} < invalid syntax")
+
+        args = self.insert_prefix(re.split(r"\s+", linebuffer.strip()), force=True)
         token, _ = self.longest_match(args)
 
         if token == self.root and linebuffer.strip() == "":

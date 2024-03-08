@@ -102,6 +102,14 @@ def test_string_and_text_at_same_level():
     assert sio.getvalue() == out
 
 
+def test_text_has_evaluated_before_string():
+
+    out = (build_completion_output([("<count>", "Integer")])) + "ping count "
+    clear_sio()
+    assert cli.complete("ping count ", "", 0) == None
+    assert sio.getvalue() == out
+
+
 def test_set_prefix():
     prefix = ["edit-test"]
     cli.set_prefix(prefix)
@@ -109,6 +117,7 @@ def test_set_prefix():
     out = (
         build_completion_output(
             [
+                ("<[Enter]>", "Execute this command"),
                 ("test1", "test1-desc"),
                 ("test2", "test2-desc"),
                 ("test3", "test3-desc"),
@@ -127,14 +136,14 @@ def test_set_prefix():
     cli.execute("set test1")
     assert "set edit-test test1" in sio.getvalue()
 
+    clear_sio()
+    cli.execute("set ")
+    assert "set edit-test" in sio.getvalue()
+
+    clear_sio()
+    cli.execute("set")
+    assert "set edit-test" in sio.getvalue()
+
     cli.clear_prefix()
     test_complete_at_1st_level()
     test_complete_at_2nd_level()
-
-
-def test_text_has_evaluated_before_string():
-
-    out = (build_completion_output([("<count>", "Integer")])) + "ping count "
-    clear_sio()
-    assert cli.complete("ping count ", "", 0) == None
-    assert sio.getvalue() == out
