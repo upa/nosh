@@ -314,6 +314,11 @@ class StringToken(BasicToken):
     def __init__(self, **kwargs):
         self.must_not_have("text", kwargs)
         self.must_have("mark", kwargs)
+        if "regex" in kwargs:
+            self.regex = kwargs["regex"]
+            del kwargs["regex"]
+        else:
+            self.regex = r"^[0-9a-zA-Z_\-\./]+$"
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -323,7 +328,7 @@ class StringToken(BasicToken):
         return [(self.mark, self.desc)]
 
     def match(self, text: str) -> bool:
-        if re.match(r"[0-9a-zA-Z_\-]+", text):
+        if re.match(self.regex, text):
             return True
         return False
 

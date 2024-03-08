@@ -225,6 +225,8 @@ class CLI:
 
         first = self.root.match_leaf(args[0])
         if not first:
+            if linebuffer.strip() == "":
+                return
             # first token is invalid
             raise SyntaxError(f"{linebuffer} < invalid syntax")
 

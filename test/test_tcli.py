@@ -25,6 +25,12 @@ def test_insert_under_stringtoken():
     assert tk == token
 
 
+def test_execue_with_empty_line():
+    clear_sio()
+    cli.execute("")
+    assert not "invalid synatx" in sio.getvalue()
+
+
 def test_execute():
     tk, _ = cli.longest_match(["set", "router-id", "1.1.1.1"])
     assert tk.__class__ == IPv4AddressToken
@@ -143,6 +149,10 @@ def test_set_prefix():
     clear_sio()
     cli.execute("set")
     assert "set edit-test" in sio.getvalue()
+
+    clear_sio()
+    cli.execute("")
+    assert not "invalid synatx" in sio.getvalue()
 
     cli.clear_prefix()
     test_complete_at_1st_level()

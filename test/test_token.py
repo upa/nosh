@@ -17,6 +17,7 @@ param_make_valid_token = [
     (TextToken, {"text": "text", "desc": "desc"}),
     (InterfaceToken, {}),
     (StringToken, {"mark": "<string>"}),
+    (StringToken, {"mark": "<string>", "regex": r".[a-zA-Z]"}),
     (IntToken, {}),
     (IPv4AddressToken, {}),
     (IPv6AddressToken, {}),
@@ -123,3 +124,14 @@ def test_token_find():
     assert t0.find(["t1", "t2"]) == t2
     assert t0.find(["t1", "t2", StringToken]) == s1
     assert t0.find(["t1", "t2", StringToken, "t3"]) == t3
+
+
+def test_string_token():
+    t = StringToken(mark="<mark>")
+    assert t.match("asdf")
+    assert t.match("asdf/.-")
+    assert not t.match("comma,")
+
+    t = StringToken(mark="<mark>", regex=r"^[a-z,]$")
+    assert not t.match("comma,")
+    assert not t.match("X")
