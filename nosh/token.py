@@ -318,7 +318,7 @@ class StringToken(BasicToken):
             self.regex = kwargs["regex"]
             del kwargs["regex"]
         else:
-            self.regex = r"^[0-9a-zA-Z_\-\./]+$"
+            self.regex = r"^[0-9a-zA-Z_\-\./@:]+$"
         super().__init__(**kwargs)
 
     def __str__(self):
