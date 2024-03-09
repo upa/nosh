@@ -286,6 +286,6 @@ class CLI:
                 break
 
             except Exception as e:
-                self._pr(f"CLI Catch Error: {e}")
+                self._pr(f"CLI Catch Error: {e.__class__.__name__}:{e}")
                 self._pr("")
                 continue
