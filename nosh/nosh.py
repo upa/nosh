@@ -288,4 +288,7 @@ class CLI:
             except Exception as e:
                 self._pr(f"CLI Catch Error: {e.__class__.__name__}:{e}")
                 self._pr("")
+                # When an error occurs, re-init readline
+                self.stop()
+                self.start()
                 continue
