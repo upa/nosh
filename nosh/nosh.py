@@ -110,7 +110,7 @@ class CLI:
             token = next_token
 
         if i + 1 != len(path):
-            raise SyntaxError(f"{' '.join(path[:i])} < syntax error")
+            raise SyntaxError(f"{' '.join(path[:i+1])} < syntax error")
 
         return token, visited
 
