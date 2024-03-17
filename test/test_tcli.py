@@ -44,10 +44,12 @@ def test_syntaxerror():
     with pytest.raises(SyntaxError):
         cli.execute("invalid syntax")
 
+
 def test_longest_match_synatx_error():
     with pytest.raises(SyntaxError) as e:
         cli.longest_match(["show", "hoge", "huga"])
     assert str(e.value) == "show hoge < syntax error"
+
 
 def clear_sio():
     sio.truncate(0)
