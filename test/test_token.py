@@ -174,6 +174,6 @@ def test_choice_token_completion():
     t = ChoiceToken(
         choices=["asdf", "qwer"],
     )
-    assert t.completion_candidates("") == [(t.mark, t.desc)]
+    assert t.completion_candidates("") == [(t.mark, t.desc), ("asdf", ""), ("qwer", "")]
     assert t.completion_candidates("a") == [("asdf", "")]
     assert t.completion_candidates("q") == [("qwer", "")]

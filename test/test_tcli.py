@@ -73,6 +73,7 @@ def test_full_comlete_texttoken():
     # Full compltion test
     out = build_completion_output(
         [
+            ("choice", "choice test"),
             ("edit", "edit test: insert edit-test"),
             ("ping", "ping to remote host"),
             ("set", "desc set"),

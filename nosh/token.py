@@ -518,13 +518,20 @@ class ChoiceToken(BasicToken):
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
 
+        candidates: list[tuple[str, str]] = []
         if len(text) > 0:
             matched = list(filter(lambda x: x.startswith(text), self.choices))
             if len(matched) == 1:
                 # we have one candidate, return it as the candidate.
                 return [(matched[0], "")]
 
-        return [(self.mark, self.desc)]
+        candidates.append((self.mark, self.desc))
+
+        for choice in self.choices:
+            if choice.startswith(text):
+                candidates.append((choice, ""))
+
+        return candidates
 
     def match(self, text: str) -> bool:
         if text in self.choices:

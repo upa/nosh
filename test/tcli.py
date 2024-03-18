@@ -182,6 +182,21 @@ wait = instantiate(
     }
 )
 
+choice = instantiate(
+    {
+        "class": TextToken,
+        "text": "choice",
+        "desc": "choice test",
+        "leaves": [
+            {
+                "class": ChoiceToken,
+                "mark": "<choice>",
+                "choices": ["choice1", "choice2", "chocie3", "no-chocie"],
+            }
+        ],
+    }
+)
+
 
 ping.append(count, wait)
 target = ping.find([StringToken])
@@ -195,6 +210,7 @@ cli.append(
     instantiate(set_tree),
     instantiate(edit_tree),
     instantiate(top_tree),
+    choice,
     ping,
 )
 cli.private = cli
