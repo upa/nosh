@@ -1,6 +1,7 @@
 import pytest
 
 from nosh.token import (
+    IPAddressToken,
     TextToken,
     InterfaceToken,
     StringToken,
@@ -23,6 +24,7 @@ param_make_valid_token = [
     (IntToken, {"range": (1, 10)}),
     (IPv4AddressToken, {}),
     (IPv6AddressToken, {}),
+    (IPAddressToken, {}),
     (InterfaceAddressToken, {}),
     (IPv4NetworkToken, {}),
     (IPv6NetworkToken, {}),
@@ -46,6 +48,7 @@ param_make_invalid_token = [
     (IntToken, {"range": ()}),  # range must be tuple[int, int]
     (IPv4AddressToken, {"text": "text"}),  # must not have text
     (IPv6AddressToken, {"text": "text"}),  # must not have text
+    (IPAddressToken, {"text": "text"}),  # must not have text
     (InterfaceAddressToken, {"text": "text"}),  # must not have text
     (IPv4NetworkToken, {"text": "text"}),  # must not have text
     (IPv6NetworkToken, {"text": "text"}),  # must not have text
@@ -90,6 +93,12 @@ param_match_test = [
         {},
         ["2001:db8::1"],
         ["10.0.0.1", "2001:db8::1/64", "asdf"],
+    ),
+    (
+        IPAddressToken,
+        {},
+        ["10.0.0.1", "2001:db8::1"],
+        ["10.0.0.1/32", "2001:db8::1/64", "asdf"],
     ),
     (
         InterfaceAddressToken,

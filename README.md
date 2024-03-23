@@ -135,6 +135,7 @@ We have implemented following token classes:
 * `IntToken`: representing an integer.
 * `IPv4AddressToken`: representing an IPv4 Address.
 * `IPv6AddressToken`: representing an IPv6 Address.
+* `IPAddressToken`: representing an IP Address (both v4 and v6).
 * `InterfaceAddressToken`: representing an IP (both v4 and v6) address
   with prefix length.
 * `IPv4NetworkToken`: representing an IPv4 network address.

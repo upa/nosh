@@ -419,6 +419,29 @@ class IPv6AddressToken(BasicToken):
             return False
 
 
+class IPAddressToken(BasicToken):
+    """Token representing IPv4 or IPv6 Address."""
+
+    def __init__(self, **kwargs):
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<address>")
+        kwargs.setdefault("desc", "IP address")
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        return "<IPAddress>"
+
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
+        return [(self.mark, self.desc)]
+
+    def match(self, text: str) -> bool:
+        try:
+            ipaddress.ip_address(text)
+            return True
+        except ValueError:
+            return False
+
+
 class InterfaceAddressToken(BasicToken):
     """Token representing InterfaceAddress.
 
