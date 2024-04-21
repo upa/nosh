@@ -351,7 +351,6 @@ class IntToken(BasicToken):
         kwargs.setdefault("mark", "<int>")
         kwargs.setdefault("desc", "Integer")
         self.range = range
-        print(self.range)
         if self.range != None and (
             not isinstance(self.range, tuple) or len(self.range) != 2
         ):
