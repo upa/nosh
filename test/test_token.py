@@ -160,6 +160,12 @@ def test_token_find():
     assert t0.find(["t1", "t2", StringToken, "t3"]) == t3
 
 
+def test_interface_token_regex():
+    t = InterfaceToken(regex="e.*")  # ethernet ports on both macos and linux
+    assert not t.match("lo0")
+    assert t.completion_candidates("e")
+
+
 def test_string_token_regex():
     t = StringToken(mark="<mark>")
     assert t.match("asdf")

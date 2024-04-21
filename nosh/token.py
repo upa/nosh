@@ -266,14 +266,15 @@ class InterfaceToken(BasicToken):
 
     InterfaceToken must not have `text`. Intead, it has `mark`
     ``<interface-name>`` by default. Completion candidates are
-    interface names retrieved by ``ifaddr``.
-
+    interface names retrieved by ``ifaddr``. `regex` can filter
+    interface names.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, regex: str | None = None, **kwargs):
         self.must_not_have("text", kwargs)
         kwargs.setdefault("mark", "<interface-name>")
         kwargs.setdefault("desc", "Name to identify an interface")
+        self.regex = regex
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -291,12 +292,17 @@ class InterfaceToken(BasicToken):
             candidates.append((self.mark, self.desc))
 
         for ifname in self._ifnames():
+            if self.regex and not re.match(self.regex, ifname):
+                continue
             if ifname.startswith(text):
                 candidates.append((ifname, ""))
+
         return candidates
 
     def match(self, text: str) -> bool:
         for ifname in self._ifnames():
+            if self.regex and not re.match(self.regex, ifname):
+                continue
             if ifname == text:
                 return True
         return False
@@ -312,14 +318,10 @@ class StringToken(BasicToken):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, regex: str = r"^[0-9a-zA-Z_\-\./@:]+$", **kwargs):
         self.must_not_have("text", kwargs)
         self.must_have("mark", kwargs)
-        if "regex" in kwargs:
-            self.regex = kwargs["regex"]
-            del kwargs["regex"]
-        else:
-            self.regex = r"^[0-9a-zA-Z_\-\./@:]+$"
+        self.regex = regex
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -344,17 +346,16 @@ class IntToken(BasicToken):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, range: tuple[int, int] | None = None, **kwargs):
         self.must_not_have("text", kwargs)
         kwargs.setdefault("mark", "<int>")
         kwargs.setdefault("desc", "Integer")
-        if "range" in kwargs:
-            self.range = kwargs["range"]
-            del kwargs["range"]
-            if not isinstance(self.range, tuple) or len(self.range) != 2:
-                raise ValueError("range must be tuple (min, max)")
-        else:
-            self.range = None
+        self.range = range
+        print(self.range)
+        if self.range != None and (
+            not isinstance(self.range, tuple) or len(self.range) != 2
+        ):
+            raise ValueError("range must be tuple (min, max)")
         super().__init__(**kwargs)
 
     def __str__(self):
