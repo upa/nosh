@@ -4,11 +4,12 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "nosh"
-version = "0.0.0"
 description = "Nosh is a libarry to implement CLI for networking devices"
 authors = [
         { name = "Ryo Nakamura", email = "upa@haeena.net" },
 ]
+
+dynamic = ["version"]
 
 dependencies = [
 	"ifaddr"
