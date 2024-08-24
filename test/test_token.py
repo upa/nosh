@@ -6,6 +6,7 @@ from nosh.token import (
     InterfaceToken,
     StringToken,
     IntToken,
+    FloatToken,
     IPv4AddressToken,
     IPv6AddressToken,
     InterfaceAddressToken,
@@ -22,6 +23,8 @@ param_make_valid_token = [
     (StringToken, {"mark": "<string>", "regex": r".[a-zA-Z]"}),
     (IntToken, {}),
     (IntToken, {"range": (1, 10)}),
+    (FloatToken, {}),
+    (FloatToken, {"range" : (0.0, 1.0)}),
     (IPv4AddressToken, {}),
     (IPv6AddressToken, {}),
     (IPAddressToken, {}),
@@ -46,6 +49,9 @@ param_make_invalid_token = [
     (IntToken, {"text": "text"}),  # must not have text
     (IntToken, {"range": "not-tuple"}),  # range must be tuple[int, int]
     (IntToken, {"range": ()}),  # range must be tuple[int, int]
+    (FloatToken, {"text": "text"}),  # must not have text
+    (FloatToken, {"range": "not-tuple"}),  # range must be tuple[float, float]
+    (FloatToken, {"range": ()}),  # range must be tuple[float, float]
     (IPv4AddressToken, {"text": "text"}),  # must not have text
     (IPv6AddressToken, {"text": "text"}),  # must not have text
     (IPAddressToken, {"text": "text"}),  # must not have text
@@ -81,6 +87,12 @@ param_match_test = [
         {},
         ["10", "0", "-1"],
         ["asdf", "a10"],
+    ),
+    (
+        FloatToken,
+        {},
+        ["0.0", "-0.1", "1.0", "10"],
+        ["asdf", "a10" ]
     ),
     (
         IPv4AddressToken,
@@ -181,6 +193,15 @@ def test_int_token_range():
     t = IntToken(range=(1, 10))
     assert t.match("1")
     assert t.match("10")
+    assert not t.match("0")
+    assert not t.match("11")
+
+
+def test_float_token_range():
+    t = FloatToken(range=(1.0, 10.0))
+    assert t.match("1")
+    assert t.match("10")
+    assert t.match("2.5")
     assert not t.match("0")
     assert not t.match("11")
 

@@ -373,6 +373,43 @@ class IntToken(BasicToken):
             return False
 
 
+class FloatToken(BasicToken):
+    """Float representing integer.
+
+    FloatToken accpets `range` argument, which is tuple of (min, max)
+    value. If the range is specified, match() returns False if the
+    text value is out of the range (gt or lt). IntToken must not have
+    `text`. It have mark ``<float>`` by default.
+
+    """
+
+    def __init__(self, range: tuple[float|int, float|int] | None = None, **kwargs):
+        self.must_not_have("text", kwargs)
+        kwargs.setdefault("mark", "<float>")
+        kwargs.setdefault("desc", "Float")
+        self.range = range
+        if self.range != None and (
+            not isinstance(self.range, tuple) or len(self.range) != 2
+        ):
+            raise ValueError("range must be tuple (min, max)")
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        return "<Float>"
+
+    def completion_candidates(self, text: str) -> list[tuple[str, str]]:
+        return [(self.mark, self.desc)]
+
+    def match(self, text: str) -> bool:
+        try:
+            v = float(text)
+            if self.range and (v < self.range[0] or self.range[1] < v):
+                return False
+            return True
+        except ValueError:
+            return False
+
+
 class IPv4AddressToken(BasicToken):
     """Token representing IPv4Address."""
 

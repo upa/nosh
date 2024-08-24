@@ -133,6 +133,7 @@ We have implemented following token classes:
 * `StringToken`: representing a string for user-defined parameters
   (e.g., route-map, policy-statement, and ACL).
 * `IntToken`: representing an integer.
+* `FloatToken`: representing a float.
 * `IPv4AddressToken`: representing an IPv4 Address.
 * `IPv6AddressToken`: representing an IPv6 Address.
 * `IPAddressToken`: representing an IP Address (both v4 and v6).
