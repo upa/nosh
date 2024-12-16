@@ -22,7 +22,7 @@ def instantiate(tree: dict) -> Token:
     }
     """
 
-    keys = ["text", "mark", "desc", "action", "regex", "range", "choices"]
+    keys = ["text", "mark", "desc", "action", "regex", "range", "choices", "descmap"]
 
     def _instantiate(obj: dict) -> Token:
         kwargs = {}

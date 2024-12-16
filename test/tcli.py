@@ -191,7 +191,8 @@ choice = instantiate(
             {
                 "class": ChoiceToken,
                 "mark": "<choice>",
-                "choices": ["choice1", "choice2", "chocie3", "no-chocie"],
+                "choices": ["choice1", "choice2", "choice3", "no-chocie"],
+                "descmap": {"choice1": "1st choice"},
             }
         ],
     }

@@ -208,8 +208,15 @@ def test_float_token_range():
 
 def test_choice_token_completion():
     t = ChoiceToken(
-        choices=["asdf", "qwer"],
+        choices=["asdf", "qwer", "nodesc"],
+        descmap={"asdf": "desc asdf", "qwer": "desc qwer"}
     )
-    assert t.completion_candidates("") == [(t.mark, t.desc), ("asdf", ""), ("qwer", "")]
-    assert t.completion_candidates("a") == [("asdf", "")]
-    assert t.completion_candidates("q") == [("qwer", "")]
+    assert t.completion_candidates("") == [
+        (t.mark, t.desc),
+        ("asdf", "desc asdf"),
+        ("qwer", "desc qwer"),
+        ("nodesc", "")
+    ]
+    assert t.completion_candidates("a") == [("asdf", "desc asdf")]
+    assert t.completion_candidates("q") == [("qwer", "desc qwer")]
+    assert t.completion_candidates("n") == [("nodesc", "")]

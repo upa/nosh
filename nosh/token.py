@@ -560,9 +560,11 @@ class IPv6NetworkToken(BasicToken):
 
 class ChoiceToken(BasicToken):
     """Token represnting choices. `choices` list[str] argument is
-    required."""
+    required. `descmap` is a dict where key is an option and value is
+    the description associating with the option of the key.
+    """
 
-    def __init__(self, **kwargs):
+    def __init__(self, descmap: dict = {}, **kwargs):
         self.must_not_have("text", kwargs)
         self.must_have("choices", kwargs)
         if not isinstance(kwargs["choices"], list):
@@ -571,6 +573,7 @@ class ChoiceToken(BasicToken):
         del kwargs["choices"]
         kwargs.setdefault("mark", "<choice>")
         kwargs.setdefault("desc", "Choice from {}".format(", ".join(self.choices)))
+        self.descmap = descmap
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -583,13 +586,13 @@ class ChoiceToken(BasicToken):
             matched = list(filter(lambda x: x.startswith(text), self.choices))
             if len(matched) == 1:
                 # we have one candidate, return it as the candidate.
-                return [(matched[0], "")]
+                return [(matched[0], self.descmap.get(matched[0], ""))]
 
         candidates.append((self.mark, self.desc))
 
         for choice in self.choices:
             if choice.startswith(text):
-                candidates.append((choice, ""))
+                candidates.append((choice, self.descmap.get(choice, "")))
 
         return candidates
 
