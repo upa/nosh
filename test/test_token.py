@@ -79,8 +79,8 @@ param_match_test = [
     (
         StringToken,
         {"mark": "<mark>"},
-        ["a", "asdf-asdf", "asdf_", "12345"],
-        [" ", "*", "[]", "()"],
+        ["a", "asdf-asdf", "asdf_", "12345", "-$/^", "🚀"],
+        [" ",],
     ),
     (
         IntToken,
@@ -182,7 +182,7 @@ def test_string_token_regex():
     t = StringToken(mark="<mark>")
     assert t.match("asdf")
     assert t.match("asdf/.-")
-    assert not t.match("comma,")
+    assert not t.match("comma ")
 
     t = StringToken(mark="<mark>", regex=r"^[a-z,]$")
     assert not t.match("comma,")

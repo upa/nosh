@@ -318,7 +318,7 @@ class StringToken(BasicToken):
 
     """
 
-    def __init__(self, regex: str = r"^[0-9a-zA-Z_\-\./@:\$]+$", **kwargs):
+    def __init__(self, regex: str = r"^[\S]+$", **kwargs):
         self.must_not_have("text", kwargs)
         self.must_have("mark", kwargs)
         self.regex = regex
