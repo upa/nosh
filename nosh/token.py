@@ -264,7 +264,7 @@ class TextToken(BasicToken):
 class InterfaceToken(BasicToken):
     """Token representing interfaces.
 
-    InterfaceToken must not have `text`. Intead, it has `mark`
+    InterfaceToken must not have `text`. Instead, it has `mark`
     ``<interface-name>`` by default. Completion candidates are
     interface names retrieved by ``ifaddr``. `regex` can filter
     interface names.
@@ -280,10 +280,10 @@ class InterfaceToken(BasicToken):
     def __str__(self):
         return "<Interface>"
 
-    def _ifnames(self):
+    def _ifnames(self) -> list[str]:
         if os.path.exists("/sys/class/net"):
-            return os.listdir("/sys/class/net")
-        return map(lambda a: a.name, ifaddr.get_adapters())
+            return sorted(os.listdir("/sys/class/net"))
+        return sorted([ a.name for a in ifaddr.get_adapters()])
 
     def completion_candidates(self, text: str) -> list[tuple[str, str]]:
 
