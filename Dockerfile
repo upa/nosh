@@ -7,7 +7,7 @@ STOPSIGNAL SIGRTMIN+3
 
 RUN set -ex && apt-get update -y	\
 	&& apt-get install -y --no-install-recommends ca-certificates  \
-	python3 python3-pip flit \
+	python3 python3-pip python3-ifaddr flit \
 	build-essential devscripts debhelper dh-python pybuild-plugin-pyproject
 
 COPY . /nosh

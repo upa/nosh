@@ -1,5 +1,12 @@
+
+nosh (0.0.3) unstable; urgency=medium
+
+  * v0.0.3
+
+ -- Ryo Nakamura <upa@haeena.net>  Wed, 08 Jan 2025 20:55:32 +0900
+
 nosh (0.0.0) unstable; urgency=medium
 
   * First release
 
- -- Ryo nakamura <upa@haeena.net>  Thu, 07 Mar 2024 21:05:27 +0900
+ -- Ryo Nakamura <upa@haeena.net>  Thu, 07 Mar 2024 21:05:27 +0900
