@@ -15,6 +15,9 @@ def act_test_ok(priv: Any, args: list[str]):
     c: CLI = priv
     c.file.write(" ".join(args))
 
+def act_print(priv: Any, args: list[str], text:str):
+    c: CLI = priv
+    c.file.write(text)
 
 def act_test_ng(priv: Any, args: list[str]):
     raise RuntimeError("act_test_ng is called: {}".format(" ".join(args)))
@@ -46,6 +49,12 @@ show_tree = {
             "text": "sysmet",
             "desc": "desc show sysmet",
             "action": act_test_ok,
+        },
+        {
+            "class": TextToken,
+            "text": "uptime",
+            "desc": "show uptime",
+            "action": lambda p, a: act_print(p, a, "never up"),
         },
     ],
 }

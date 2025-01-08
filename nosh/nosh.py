@@ -219,7 +219,11 @@ class CLI:
         if state < len(compeletion_candidates):
             return compeletion_candidates[state][0] + " "
 
-    def execute(self, linebuffer: str):
+    def execute(self, inputbuffer: str):
+        for line in inputbuffer.split('\n'):
+            self._execute(line)
+
+    def _execute(self, linebuffer: str):
         """Executes action of a Token matching the linebuffer"""
         args = re.split(r"\s+", linebuffer)
 

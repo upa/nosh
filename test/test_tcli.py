@@ -1,4 +1,3 @@
-from typing import Text
 import pytest
 
 from nosh import *
@@ -38,6 +37,18 @@ def test_execute():
     clear_sio()
     cli.execute("set router-id 1.1.1.1 ")
     assert sio.getvalue() == "set router-id 1.1.1.1\n"
+
+
+def test_execute_multiple_lines():
+    clear_sio()
+    inputbuf = """
+set router-id 1.1.1.1
+set router-id 2.2.2.2
+show uptime
+"""
+    # this can happen when copy and paste commands
+    cli.execute(inputbuf)
+    assert "never up" in sio.getvalue()
 
 
 def test_syntaxerror():
